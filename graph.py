@@ -1,4 +1,4 @@
-import csv
+import pandas as pd
 import sys
 
 
@@ -16,12 +16,8 @@ class Graph:
     @staticmethod
     def readFile(filename):
         try:
-            file = open("dataset/" + filename)
-            csvReader = csv.reader(file)
-            header = next(csvReader)
-            rows = [row for row in csvReader]
-            print(f"Header: \n {header}")
-            print(f"Rows: \n {rows}")
-            file.close()
+            df = pd.read_csv("dataset/" + filename, sep=";")
+            print(df.shape) ## (rows, columns)
+            print(df.to_string())
         except IOError:
             sys.exit("The file doesnt exists in /dataset")
