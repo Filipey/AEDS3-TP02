@@ -1,0 +1,38 @@
+﻿Disciplina;Nome;# Turmas
+CSI000;Eletiva;10
+CSI030;Programacao de Computadores I;4
+CSI032;Programacao de Computadores II;2
+CSI145;Fundamentos de Sistemas de Informacao;2
+CSI148;Analise Numérica;2
+CSI201;Introducao a Engenharia da Computacao;1
+CSI203;Org. e Arq. de Computadores I;3
+CSI419;Linguagens de Programacao;2
+CSI427;Metodologia de Pesquisa em Computacao;1
+CSI428;Algoritmos e Estrutura de Dados I;4
+CSI429;Algoritmos e Estrutura de Dados II;2
+CSI433;Sistemas Distribuidos;2
+CSI437;Sistemas Operacionais;2
+CSI439;Gestao da Tecnologia da Informacao;1
+CSI440;Banco de Dados I;2
+CSI442;Banco de Dados II;1
+CSI443;Matematica Discreta;2
+CSI450;Interacao Humano-Computador;2
+CSI457;Inteligencia Artificial;2
+CSI460;Gestao da informacao;1
+CSI462;Sistemas de Apoio a Decisao;1
+CSI463;Seguranca e Auditoria de Sistemas;1
+CSI466;Teoria dos Grafos;2
+CSI476;Fundamentos Teoricos da Computacao;2
+CSI477;Sistemas WEB I;1
+CSI478;Gerencia de Projetos de Software;1
+CSI485;Engenharia de Software I;2
+CSI486;Engenharia de Software II;1
+CSI491;Informatica e Sociedade;1
+CSI506;Compiladores I;1
+CSI508;Computacao Grafica;1
+CSI509;Org. e Arq. de Computadores II;1
+CSI510;Redes de Computadores II;1
+CSI546;Projeto e Analise de Algoritmos;1
+CSI548;Rede de Computadores I;3
+CSI693;Avaliacao de Desempenho de Sistemas;1
+;;72
