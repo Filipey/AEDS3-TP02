@@ -28,7 +28,7 @@ class Graph:
         """
         if source < self.num_vet and destiny < self.num_vet:
             self.mat_adj[source][destiny] = (flow, capacity)
-            self.list_adj[source].append(destiny, (flow, capacity))
+            self.list_adj[source].append((destiny, (flow, capacity)))
             self.num_edg += 1
         else:
             sys.exit("Invalid Edge")
@@ -56,11 +56,13 @@ class Graph:
 
         :return: List of edges in format: source_vertex, destiny_vertex, (flow, capacity)
         """
+        edges_list = []
+
         for i in enumerate(self.mat_adj):
             for j in enumerate(self.mat_adj[i]):
-                edgesList = i, j, self.mat_adj[i][j]
+                edges_list.append((i, j, self.mat_adj[i][j]))
 
-        return edgesList
+        return edges_list
 
     @staticmethod
     def readFile(filename: str) -> None:
@@ -88,7 +90,7 @@ class Graph:
             for edge in edges:  # edge = [source, destiny, (flow, capacity)]
                 source = edge[0]
                 destiny = edge[1]
-                flow = edge[2[0]]
+                flow = edge[2][0]
 
                 if dist[destiny] > dist[source] + flow:
                     dist[destiny] = dist[source] + flow
