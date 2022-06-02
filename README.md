@@ -38,7 +38,7 @@ O programa irá ler
 esses arquivos de entrada e criar a rede de fluxo correspondente ao problema de alocação. A rede
 de fluxo terá quatro camadas, um com o nó de super oferta, outra com nós representado os professores, outra
 representando as disciplinas e, por fim, o nó de super demanda. Com relação às preferências, os seguintes
-custtos incorrem:
+custos incorrem:
 
 | Preferência |  1  |  2  |  3  |  4  |  5  |
 |:-----------:|:---:|:---:|:---:|:---:|:---:|
@@ -52,11 +52,14 @@ $ git clone https://github.com/Filipey/AEDS3-TP02.git
 
 # Acesse o diretório do projeto no terminal
 $ cd AEDS3-TP02
+
+# Digite no terminal
+$ python main.py
 ````
 
-No arquivo main.py, insira os seguintes dados:
-
 ```python
+# Será solicitado ao usuário as seguintes entradas:
+
 # Arquivo de professores no formato csv presente na pasta /dataset
 teachers = input("Type the filename in /dataset: ")
 
