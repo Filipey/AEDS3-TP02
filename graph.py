@@ -64,17 +64,41 @@ class Graph:
 
         return edges_list
 
-    @staticmethod
-    def readFile(filename: str) -> None:
+    def readTeachers(self, filename: str) -> None:
         """
 
-        :param filename: Name of the csv file in /dataset
-        :return: New status based on file data
+        :param filename: Name of the teachers csv file in /dataset
+        :return: New graph status based on file data
         """
         try:
             df = pd.read_csv("dataset/" + filename, sep=";")
-            print(df.shape)  # (rows, columns)
+            # print(df.shape)  # (rows, columns)
             print(df.to_string())
+
+            teachers = df.iloc[:, 0].dropna().values.tolist()  # Get values of column Professor, removing NaN values
+
+            subjects = df.iloc[:, [2, 3, 4, 5, 6]].dropna().values.tolist()  # Get values of columns Preferencia's,
+            # removing NaN values
+
+            num_of_subjects = df.iloc[31:, 1].values[0]  # Get the quantity of subjects
+
+            self.num_vet = len(teachers) + num_of_subjects + 2  # Set quantity of vertexes to (num of teachers + num
+            # of subjects + 2)
+
+            self.mat_adj = [[0 for _ in range(self.num_vet)] for _ in range(self.num_vet)]
+        except IOError:
+            sys.exit("The file doesnt exists in /dataset")
+        except:
+            sys.exit("Unhandled error")
+
+    def readSubjects(self, filename: str) -> None:
+        """
+
+        :param filename: Name of the subjects csv file in /dataset
+        :return: New graph status based on file data
+        """
+        try:
+            df = pd.read_csv("dataset/" + filename, sep=";")
         except IOError:
             sys.exit("The file doesnt exists in /dataset")
 
