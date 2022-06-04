@@ -27,7 +27,7 @@ class Graph:
         :param capacity: Capacity of the edge
         """
         if source < self.num_vet and destiny < self.num_vet:
-            self.mat_adj[source][destiny] = (flow, capacity)
+            # self.mat_adj[source][destiny] = (flow, capacity)
             self.list_adj[source].append((destiny, (flow, capacity)))
             self.num_edg += 1
         else:
@@ -48,6 +48,8 @@ class Graph:
                     if v == destiny:
                         self.list_adj[source].remove((v, w))
                         break
+
+                self.num_edg += 1
         else:
             sys.exit("Invalid Edge")
 
@@ -64,7 +66,22 @@ class Graph:
 
         return edges_list
 
-    def readTeachers(self, filename: str) -> None:
+    def cleanSubjects(self, subjects) -> list:
+        """
+
+        :param subjects: list of subjects with NaN values to be cleaned
+        :return: new list with subjects
+        """
+
+        newSubjects = []
+        for item in subjects:
+            newSubjects.append([subject for subject in item if str(subject) != 'nan'])
+
+        newSubjects.pop(-1)
+
+        return newSubjects
+
+    def readTeachers(self, filename: str) -> tuple:
         """
 
         :param filename: Name of the teachers csv file in /dataset
@@ -72,26 +89,19 @@ class Graph:
         """
         try:
             df = pd.read_csv("dataset/" + filename, sep=";")
-            # print(df.shape)  # (rows, columns)
-            print(df.to_string())
 
             teachers = df.iloc[:, 0].dropna().values.tolist()  # Get values of column Professor, removing NaN values
 
-            subjects = df.iloc[:, [2, 3, 4, 5, 6]].dropna().values.tolist()  # Get values of columns Preferencia's,
-            # removing NaN values
+            subjects = df.iloc[:, [2, 3, 4, 5, 6]].values.tolist()  # Get values of columns Preferencia's,
 
-            num_of_subjects = df.iloc[31:, 1].values[0]  # Get the quantity of subjects
+            subjects = self.cleanSubjects(subjects)  # Clean subjects list
 
-            self.num_vet = len(teachers) + num_of_subjects + 2  # Set quantity of vertexes to (num of teachers + num
-            # of subjects + 2)
+            return teachers, subjects
 
-            self.mat_adj = [[0 for _ in range(self.num_vet)] for _ in range(self.num_vet)]
         except IOError:
             sys.exit("The file doesnt exists in /dataset")
-        except:
-            sys.exit("Unhandled error")
 
-    def readSubjects(self, filename: str) -> None:
+    def readSubjects(self, filename: str) -> tuple:
         """
 
         :param filename: Name of the subjects csv file in /dataset
@@ -99,8 +109,34 @@ class Graph:
         """
         try:
             df = pd.read_csv("dataset/" + filename, sep=";")
+
+            data = df.iloc[:, ].values.tolist()  # Get all data into a list
+
+            num_of_classes = data.pop(-1)[2]  # Remove last line that contains the total of classes
+
+            total_of_subjects = len(df.iloc[:, 0].dropna().values.tolist())  # Get the total of subjects offered
+
+            return data, num_of_classes, total_of_subjects
+
         except IOError:
             sys.exit("The file doesnt exists in /dataset")
+
+    def setInitialData(self, teachers_data: tuple, subjects_data: tuple):
+        (teachers, subjects) = teachers_data
+        (subjects_info, num_of_classes, total_of_subjects) = subjects_data
+
+        self.num_vet = 2 + len(teachers) + total_of_subjects
+        self.num_edg = len(teachers) + total_of_subjects + num_of_classes
+
+        self.mat_adj = [[0 for _ in range(self.num_vet)] for _ in range(self.num_vet)]
+        self.list_adj = [[] for _ in range(self.num_vet)]
+
+        for i in range(0, len(teachers)):
+            source = teachers[i]
+            for j in range(0, len(subjects[i])):
+                destiny = subjects[i][j]
+                self.addEdge(source, destiny)
+
 
     def bellmanFord(self, s, v):
         dist = [float("inf") for _ in range(len(self.list_adj))]
@@ -111,15 +147,10 @@ class Graph:
 
         for i in range(0, len(self.list_adj) - 1):
             trade = False
-            for edge in edges:  # edge = [source, destiny, (flow, capacity)]
-                source = edge[0]
-                destiny = edge[1]
-                flow = edge[2][0]
-
+            for [source, destiny, (flow, capacity)] in edges:  # edge = [source, destiny, (flow, capacity)]
                 if dist[destiny] > dist[source] + flow:
                     dist[destiny] = dist[source] + flow
                     pred[destiny] = source
-
                     trade = True
 
             if trade is False:
@@ -134,3 +165,6 @@ class Graph:
             i = pred[i]
 
         return shortest_path
+
+    def run(self, teachers_file: str, subjects_file: str) -> None:
+        self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
