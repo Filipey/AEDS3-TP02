@@ -20,6 +20,7 @@ class Graph:
 
     def addEdge(self, source, destiny, capacity=float("inf"), flow=None) -> None:
         """
+        Add an edge on graph in format (source, destiny, (flow, capacity))
 
         :param flow: Flow value
         :param source: Source vertex
@@ -35,6 +36,7 @@ class Graph:
 
     def removeEdge(self, source, destiny) -> None:
         """
+        Delete a edge from graph
 
         :param source: Source vertex
         :param destiny: Destiny vertex
@@ -55,19 +57,21 @@ class Graph:
 
     def getEdgesList(self) -> list:
         """
+        Get list of edges in format: source_vertex, destiny_vertex, (flow, capacity)
 
-        :return: List of edges in format: source_vertex, destiny_vertex, (flow, capacity)
+        :return: List of edges
         """
         edges_list = []
 
-        for i in enumerate(self.mat_adj):
-            for j in enumerate(self.mat_adj[i]):
+        for i in range(0, len(self.mat_adj)):
+            for j in range(0, len(self.mat_adj[i])):
                 edges_list.append((i, j, self.mat_adj[i][j]))
 
         return edges_list
 
     def cleanSubjects(self, subjects) -> list:
         """
+        Removed unusual data from subjects list
 
         :param subjects: list of subjects with NaN values to be cleaned
         :return: new list with subjects
@@ -83,9 +87,10 @@ class Graph:
 
     def readTeachers(self, filename: str) -> tuple:
         """
+        Read teachers file and return formatted data
 
         :param filename: Name of the teachers csv file in /dataset
-        :return: New graph status based on file data
+        :return: teachers: list, subjects_offered: list, subjects: list
         """
         try:
             df = pd.read_csv("dataset/" + filename, sep=";")
@@ -106,9 +111,10 @@ class Graph:
 
     def readSubjects(self, filename: str) -> tuple:
         """
+        Read subjects file and return formatted data
 
         :param filename: Name of the subjects csv file in /dataset
-        :return: New graph status based on file data
+        :return: subjects_info: list, num_of_classes: int, total_of_subjects: list
         """
         try:
             df = pd.read_csv("dataset/" + filename, sep=";")
@@ -125,25 +131,63 @@ class Graph:
             sys.exit("The file doesnt exists in /dataset")
 
     def setOriginEdges(self, teachers: list, subjects_offered: list) -> None:
-        for i in range(0, len(teachers)):
-            origin = self.mat_adj[0][1]
-            destiny_teacher = self.mat_adj[0][i]
-            teacher_capacity = subjects_offered[i]
-            self.addEdge(origin, destiny_teacher, teacher_capacity)
+        """
+        Set edges from origin vertex to teachers
 
-    def setDestinyEdges(self, initial_vertex: int, subjects: list, subjects_info: list) -> None:
+        :param teachers: List of teachers
+        :param subjects_offered: List of subjects that each teacher apply
+        :return: Edges from origin vertex to tier 1 (origin -> teachers)
+        """
+        origin = self.mat_adj[0]
+        copy = [0]
+        copy = copy + subjects_offered.copy()
+
+        for i in range(0, len(teachers)):
+            destiny_teacher = i
+            teacher_capacity = copy[i]
+            self.addEdge(origin[i], destiny_teacher, teacher_capacity)
+
+    def setDestinyEdges(self, initial_vertex: int, subjects_info: list) -> None:
+        """
+        Set edges from subjects to destiny vertex
+
+        :param initial_vertex: Vertex where starts tier 2 (Subjects)
+        :param subjects_info: List of subjects in format [[Id, Name, Num_of_classes]]
+        :return: Edges from each subject to destiny vertex (subject -> destiny)
+        """
         subjects_capacities = [c[2] for c in subjects_info]
+        destiny = self.num_vet - 1
 
         for i in range(initial_vertex, self.num_vet - 1):
-            destiny = self.mat_adj[self.num_vet - 1][0]
-            origin_subject = self.mat_adj[self.num_vet - 1][i]
+            origin_subject = i
             for c in subjects_capacities:
                 subject_capacity = c
                 subjects_capacities.remove(c)
                 break
             self.addEdge(origin_subject, destiny, subject_capacity)
 
+    def setTeachersToSubjectsEdges(self, subjects_data: tuple, teachers_data: tuple):
+        subjectsId = {}
+        num_of_classes = []
+
+        for subject in subjects_data:
+            for i, item in enumerate(subject):
+                subjectsId[i] = item[0]
+                num_of_classes.append(item[2])
+
+        (teachers, classes_offered, subjects_offered) = teachers_data
+
+
+
+
     def setInitialData(self, teachers_data: tuple, subjects_data: tuple):
+        """
+        Set the initial data of the graph
+
+        :param teachers_data: Tuple in format (teachers: list, subjects_offered: list, subjects: list)
+        :param subjects_data: Tuple in format (subjects_info: list, num_of_classes: list, total_of_subjects: int)
+        :return: Updated graph data
+        """
         (teachers, subjects_offered, subjects) = teachers_data
         (subjects_info, num_of_classes, total_of_subjects) = subjects_data
 
@@ -164,9 +208,20 @@ class Graph:
 
         # adding edge from each subject to destiny 't'
         # with capacity equals to number of classes of the subject
-        self.setDestinyEdges(len(teachers) + 1, subjects, subjects_info)
+        self.setDestinyEdges(len(teachers) + 1, subjects_info)
 
-    def bellmanFord(self, s, v):
+        # adding edge from each to teacher to respective
+        # subject with capacity equals to subject number of classes
+        self.setTeachersToSubjectsEdges(subjects_data, teachers_data)
+
+    def bellmanFord(self, s: int, v: int) -> list:
+        """
+        Algorithm to get the shortest path from s to v
+
+        :param s: origin vertex
+        :param v: destiny vertex
+        :return: shortest path
+        """
         dist = [float("inf") for _ in range(len(self.list_adj))]
         pred = [None for _ in range(len(self.list_adj))]
         edges = self.getEdgesList()
