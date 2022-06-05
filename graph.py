@@ -63,8 +63,8 @@ class Graph:
         """
         edges_list = []
 
-        for i in enumerate(self.mat_adj):
-            for j in enumerate(self.mat_adj[i]):
+        for i in range(0, len(self.mat_adj)):
+            for j in range(0, len(self.mat_adj[i])):
                 edges_list.append((i, j, self.mat_adj[i][j]))
 
         return edges_list
@@ -173,7 +173,6 @@ class Graph:
         """
         (teachers, subjects_offered, subjects) = teachers_data
         (subjects_info, num_of_classes, total_of_subjects) = subjects_data
-        print(subjects_offered)
 
         # updating num_vet and num_edg based on files data
         self.num_vet = 2 + len(teachers) + total_of_subjects
