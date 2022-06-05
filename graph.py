@@ -166,6 +166,20 @@ class Graph:
                 break
             self.addEdge(origin_subject, destiny, subject_capacity)
 
+    def setTeachersToSubjectsEdges(self, subjects_data: tuple, teachers_data: tuple):
+        subjectsId = {}
+        num_of_classes = []
+
+        for subject in subjects_data:
+            for i, item in enumerate(subject):
+                subjectsId[i] = item[0]
+                num_of_classes.append(item[2])
+
+        (teachers, classes_offered, subjects_offered) = teachers_data
+
+
+
+
     def setInitialData(self, teachers_data: tuple, subjects_data: tuple):
         """
         Set the initial data of the graph
@@ -195,6 +209,10 @@ class Graph:
         # adding edge from each subject to destiny 't'
         # with capacity equals to number of classes of the subject
         self.setDestinyEdges(len(teachers) + 1, subjects_info)
+
+        # adding edge from each to teacher to respective
+        # subject with capacity equals to subject number of classes
+        self.setTeachersToSubjectsEdges(subjects_data, teachers_data)
 
     def bellmanFord(self, s: int, v: int) -> list:
         """
