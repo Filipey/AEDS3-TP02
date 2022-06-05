@@ -156,10 +156,10 @@ class Graph:
         :return: Edges from each subject to destiny vertex (subject -> destiny)
         """
         subjects_capacities = [c[2] for c in subjects_info]
+        destiny = self.num_vet - 1
 
         for i in range(initial_vertex, self.num_vet - 1):
-            destiny = self.mat_adj[self.num_vet - 1][0]
-            origin_subject = self.mat_adj[self.num_vet - 1][i]
+            origin_subject = i
             for c in subjects_capacities:
                 subject_capacity = c
                 subjects_capacities.remove(c)
