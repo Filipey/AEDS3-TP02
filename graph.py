@@ -20,7 +20,7 @@ class Graph:
 
     def addEdge(self, source, destiny, capacity=float("inf"), flow=None) -> None:
         """
-        Add an edge on graph
+        Add an edge on graph in format (source, destiny, (flow, capacity))
 
         :param flow: Flow value
         :param source: Source vertex
@@ -138,11 +138,14 @@ class Graph:
         :param subjects_offered: List of subjects that each teacher apply
         :return: Edges from origin vertex to tier 1 (origin -> teachers)
         """
+        origin = self.mat_adj[0]
+        copy = [0]
+        copy = copy + subjects_offered.copy()
+
         for i in range(0, len(teachers)):
-            origin = self.mat_adj[0][1]
-            destiny_teacher = self.mat_adj[0][i]
-            teacher_capacity = subjects_offered[i]
-            self.addEdge(origin, destiny_teacher, teacher_capacity)
+            destiny_teacher = i
+            teacher_capacity = copy[i]
+            self.addEdge(origin[i], destiny_teacher, teacher_capacity)
 
     def setDestinyEdges(self, initial_vertex: int, subjects_info: list) -> None:
         """
