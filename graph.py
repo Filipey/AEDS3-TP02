@@ -180,7 +180,7 @@ class Graph:
         """
         subjects_capacities = [c[2] for c in subjects_info]
         destiny = self.num_vet - 1
-        print(subjects_info)
+        subject_capacity = None
 
         for i in range(initial_vertex, self.num_vet - 1):
             origin_subject = i
@@ -192,17 +192,21 @@ class Graph:
 
     def setTeachersToSubjectsEdges(self):
         """
-        TO-DO
-        :return:
+        Set edges from each teacher to their respective subjects
+
+        :return: Updated graph data
         """
         teachersIndexes = self.teachers_index
         subjectsIndexes = self.subjects_index
 
-        for key, value in teachersIndexes.items():
-            for subjectKey, subjectValue in subjectsIndexes.items():
-                for subject in value[2]:
-                    if subject == subjectValue[0]:
-                        self.addEdge(key, subjectKey, subjectValue[2])
+        for key, (_, classes_offered, [*subjects]) in teachersIndexes.items():
+            for subjectKey, (subjectId, _, classes) in subjectsIndexes.items():
+                if classes_offered == 0:
+                    break
+                if subjectId in subjects:
+                    self.addEdge(key, subjectKey, classes)
+                    classes_offered -= 1
+
 
     def setInitialData(self, teachers_data: tuple, subjects_data: tuple):
         """
