@@ -198,6 +198,12 @@ class Graph:
         teachersIndexes = self.teachers_index
         subjectsIndexes = self.subjects_index
 
+        for key, value in teachersIndexes.items():
+            for subjectKey, subjectValue in subjectsIndexes.items():
+                for subject in value[2]:
+                    if subject == subjectValue[0]:
+                        self.addEdge(key, subjectKey, subjectValue[2])
+
     def setInitialData(self, teachers_data: tuple, subjects_data: tuple):
         """
         Set the initial data of the graph
@@ -227,13 +233,13 @@ class Graph:
         # with capacity equals to number of classes of the subject
         self.setDestinyEdges(len(teachers) + 1, subjects_info)
 
-        # adding edge from each to teacher to respective
-        # subject with capacity equals to subject number of classes
-        self.setTeachersToSubjectsEdges(subjects_data, teachers_data)
-
         # setting key/value dictionary of teachers
         # and subjects in format {index: value}
         self.setTeachersAndSubjectsIndexes(len(teachers) + 1, subjects_info, teachers_data)
+
+        # adding edge from each to teacher to respective
+        # subject with capacity equals to subject number of classes
+        self.setTeachersToSubjectsEdges()
 
         # updating num_edg after set all initial edges
         self.num_edg = len(teachers) + total_of_subjects + num_of_classes
