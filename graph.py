@@ -18,6 +18,9 @@ class Graph:
         else:
             self.list_adj = list_adj
 
+        self.subjects_index = {}
+        self.teachers_index = {}
+
     def addEdge(self, source, destiny, capacity=float("inf"), flow=None) -> None:
         """
         Add an edge on graph in format (source, destiny, (flow, capacity))
@@ -130,6 +133,26 @@ class Graph:
         except IOError:
             sys.exit("The file doesnt exists in /dataset")
 
+    def setTeachersAndSubjectsIndexes(self, subjects_initial_vertex: int, subjects_info: list, teachers_data: tuple):
+        """
+        Set the key/value of each teacher and subject
+
+        :param teachers_data: tuple with data of each teacher
+        :param subjects_initial_vertex: initial vertex of subjects
+        :param subjects_info: list of each subject info
+        :return:
+        """
+        (teachers, num_of_subject_offered, subjects_offered) = teachers_data
+
+        for j in range(subjects_initial_vertex, self.num_vet - 1):
+            for subject in subjects_info:
+                self.subjects_index[j] = subject
+                subjects_info.remove(subject)
+                break
+
+        for i in range(0, len(teachers)):
+            self.teachers_index[i+1] = (teachers[i], num_of_subject_offered[i], subjects_offered[i])
+
     def setOriginEdges(self, teachers: list, subjects_offered: list) -> None:
         """
         Set edges from origin vertex to teachers
@@ -157,6 +180,7 @@ class Graph:
         """
         subjects_capacities = [c[2] for c in subjects_info]
         destiny = self.num_vet - 1
+        subject_capacity = None
 
         for i in range(initial_vertex, self.num_vet - 1):
             origin_subject = i
@@ -166,18 +190,22 @@ class Graph:
                 break
             self.addEdge(origin_subject, destiny, subject_capacity)
 
-    def setTeachersToSubjectsEdges(self, subjects_data: tuple, teachers_data: tuple):
-        subjectsId = {}
-        num_of_classes = []
+    def setTeachersToSubjectsEdges(self):
+        """
+        Set edges from each teacher to their respective subjects
 
-        for subject in subjects_data:
-            for i, item in enumerate(subject):
-                subjectsId[i] = item[0]
-                num_of_classes.append(item[2])
+        :return: Updated graph data
+        """
+        teachersIndexes = self.teachers_index
+        subjectsIndexes = self.subjects_index
 
-        (teachers, classes_offered, subjects_offered) = teachers_data
-
-
+        for key, (_, classes_offered, [*subjects]) in teachersIndexes.items():
+            for subjectKey, (subjectId, _, classes) in subjectsIndexes.items():
+                if classes_offered == 0:
+                    break
+                if subjectId in subjects:
+                    self.addEdge(key, subjectKey, classes)
+                    classes_offered -= 1
 
 
     def setInitialData(self, teachers_data: tuple, subjects_data: tuple):
@@ -191,9 +219,8 @@ class Graph:
         (teachers, subjects_offered, subjects) = teachers_data
         (subjects_info, num_of_classes, total_of_subjects) = subjects_data
 
-        # updating num_vet and num_edg based on files data
+        # updating num_vet based on file data
         self.num_vet = 2 + len(teachers) + total_of_subjects
-        self.num_edg = len(teachers) + total_of_subjects + num_of_classes
 
         # updating data structures with new data
         self.mat_adj = [[0 for _ in range(self.num_vet)] for _ in range(self.num_vet)]
@@ -210,9 +237,18 @@ class Graph:
         # with capacity equals to number of classes of the subject
         self.setDestinyEdges(len(teachers) + 1, subjects_info)
 
+        # setting key/value dictionary of teachers
+        # and subjects in format {index: value}
+        self.setTeachersAndSubjectsIndexes(len(teachers) + 1, subjects_info, teachers_data)
+
         # adding edge from each to teacher to respective
         # subject with capacity equals to subject number of classes
-        self.setTeachersToSubjectsEdges(subjects_data, teachers_data)
+        self.setTeachersToSubjectsEdges()
+
+        # updating num_edg after set all initial edges
+        self.num_edg = len(teachers) + total_of_subjects + num_of_classes
+
+
 
     def bellmanFord(self, s: int, v: int) -> list:
         """
