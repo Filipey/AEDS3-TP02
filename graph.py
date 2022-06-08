@@ -21,7 +21,7 @@ class Graph:
         self.subjects_index = {}
         self.teachers_index = {}
 
-    def addEdge(self, source, destiny, capacity=float("inf"), flow=None) -> None:
+    def addEdge(self, source, destiny, capacity=float("inf"), flow=0) -> None:
         """
         Add an edge on graph in format (source, destiny, (flow, capacity))
 
@@ -288,8 +288,9 @@ class Graph:
             shortest_path.append(i)
             i = pred[i]
 
+        shortest_path.reverse()
+
         return shortest_path
 
     def run(self, teachers_file: str, subjects_file: str) -> None:
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
-        self.bellmanFord(1, 68)
