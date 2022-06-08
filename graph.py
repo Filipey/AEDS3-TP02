@@ -72,7 +72,8 @@ class Graph:
 
         return edges_list
 
-    def cleanSubjects(self, subjects) -> list:
+    @staticmethod
+    def cleanSubjects(subjects) -> list:
         """
         Removed unusual data from subjects list
 
@@ -112,7 +113,8 @@ class Graph:
         except IOError:
             sys.exit("The file doesnt exists in /dataset")
 
-    def readSubjects(self, filename: str) -> tuple:
+    @staticmethod
+    def readSubjects(filename: str) -> tuple:
         """
         Read subjects file and return formatted data
 
