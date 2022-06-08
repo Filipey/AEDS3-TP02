@@ -31,8 +31,8 @@ class Graph:
         :param capacity: Capacity of the edge
         """
         if source < self.num_vet and destiny < self.num_vet:
-            self.mat_adj[source][destiny] = (flow, capacity)
-            self.list_adj[source].append((destiny, (flow, capacity)))
+            self.mat_adj[source][destiny] = [flow, capacity]
+            self.list_adj[source].append((destiny, [flow, capacity]))
             self.num_edg += 1
         else:
             sys.exit("Invalid Edge")
