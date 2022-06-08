@@ -200,13 +200,15 @@ class Graph:
         subjectsIndexes = self.subjects_index
 
         for key, (_, classes_offered, [*subjects]) in teachersIndexes.items():
+            total_classes_offered = 0
             for subjectKey, (subjectId, _, classes) in subjectsIndexes.items():
+                if total_classes_offered == len(subjects):
+                    break
                 if classes_offered == 0:
                     break
                 if subjectId in subjects:
                     self.addEdge(key, subjectKey, classes)
-                    classes_offered -= 1
-
+                    total_classes_offered += 1
 
     def setInitialData(self, teachers_data: tuple, subjects_data: tuple):
         """
@@ -247,8 +249,6 @@ class Graph:
 
         # updating num_edg after set all initial edges
         self.num_edg = len(teachers) + total_of_subjects + num_of_classes
-
-
 
     def bellmanFord(self, s: int, v: int) -> list:
         """
