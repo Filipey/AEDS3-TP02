@@ -68,7 +68,8 @@ class Graph:
 
         for i in range(0, len(self.mat_adj)):
             for j in range(0, len(self.mat_adj[i])):
-                edges_list.append((i, j, self.mat_adj[i][j]))
+                if self.mat_adj[i][j] != 0:
+                    edges_list.append((i, j, self.mat_adj[i][j]))
 
         return edges_list
 
@@ -270,7 +271,7 @@ class Graph:
 
         for i in range(0, len(self.list_adj) - 1):
             trade = False
-            for [source, destiny, (flow, capacity)] in edges:  # edge = [source, destiny, (flow, capacity)]
+            for source, destiny, [flow, capacity] in edges:  # edge = [source, destiny, (flow, capacity)]
                 if dist[destiny] > dist[source] + flow:
                     dist[destiny] = dist[source] + flow
                     pred[destiny] = source
@@ -291,3 +292,4 @@ class Graph:
 
     def run(self, teachers_file: str, subjects_file: str) -> None:
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
+        self.bellmanFord(1, 68)
