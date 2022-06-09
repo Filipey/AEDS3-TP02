@@ -20,6 +20,7 @@ class Graph:
 
         self.subjects_index = {}
         self.teachers_index = {}
+        self.num_of_classes = None
 
     def addEdge(self, source, destiny, capacity=float("inf"), flow=0) -> None:
         """
@@ -114,8 +115,7 @@ class Graph:
         except IOError:
             sys.exit("The file doesnt exists in /dataset")
 
-    @staticmethod
-    def readSubjects(filename: str) -> tuple:
+    def readSubjects(self, filename: str) -> tuple:
         """
         Read subjects file and return formatted data
 
@@ -128,6 +128,8 @@ class Graph:
             data = df.iloc[:, ].values.tolist()  # Get all data into a list
 
             num_of_classes = data.pop(-1)[2]  # Remove last line that contains the total of classes
+
+            self.num_of_classes = num_of_classes
 
             total_of_subjects = len(df.iloc[:, 0].dropna().values.tolist())  # Get the total of subjects offered
 
@@ -292,8 +294,35 @@ class Graph:
 
         return shortest_path
 
-    def successfulShortestPaths(self):
-        print("TO-DO")
+    def getFlowByVertex(self):
+        """
+        Get the flow that should pass for each vertex
+
+        :return: List with flow of each vertex
+        """
+        b = [self.num_of_classes]
+
+        for _, [_, flow, [*_]] in self.teachers_index.items():
+            b.append(flow)
+
+        for _, [_, _, flow] in self.subjects_index.items():
+            b.append(flow)
+
+        b.append(-self.num_of_classes)
+
+        return b
+
+    def successfulShortestPaths(self, s: int, t: int):
+        F = [[0 for i in range(len(self.mat_adj))] for i in range(len(self.mat_adj))]
+        b = self.getFlowByVertex()
+        C = self.bellmanFord(s, t)
+
+        while len(C) != 0 and b[s] != 0:
+            f = float("inf")
+            for i in range(1, len(C)):
+                u = C[i - 1]
+                v = C[i]
 
     def run(self, teachers_file: str, subjects_file: str) -> None:
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
+        self.successfulShortestPaths(0, self.num_vet - 1)
