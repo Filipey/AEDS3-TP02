@@ -171,7 +171,7 @@ class Graph:
         for i in range(0, len(teachers)):
             destiny_teacher = i
             teacher_capacity = copy[i]
-            self.addEdge(origin[i], destiny_teacher, teacher_capacity)
+            self.addEdge(origin[i], destiny_teacher, teacher_capacity, teacher_capacity)
 
         self.mat_adj[0][0] = 0  # Removing link in origin vertex
 
