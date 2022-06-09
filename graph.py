@@ -204,6 +204,9 @@ class Graph:
         teachersIndexes = self.teachers_index
         subjectsIndexes = self.subjects_index
 
+        # flow value based on the preferences table
+        flow = [0, 3, 5, 8, 10]
+
         for key, (_, classes_offered, [*subjects]) in teachersIndexes.items():
             total_classes_offered = 0
             for subjectKey, (subjectId, _, classes) in subjectsIndexes.items():
@@ -212,7 +215,7 @@ class Graph:
                 if classes_offered == 0:
                     break
                 if subjectId in subjects:
-                    self.addEdge(key, subjectKey, classes)
+                    self.addEdge(key, subjectKey, classes, flow[subjects.index(subjectId)])
                     total_classes_offered += 1
 
     def setInitialData(self, teachers_data: tuple, subjects_data: tuple):
@@ -232,9 +235,6 @@ class Graph:
         # updating data structures with new data
         self.mat_adj = [[0 for _ in range(self.num_vet)] for _ in range(self.num_vet)]
         self.list_adj = [[] for _ in range(self.num_vet)]
-
-        # flow value based on the preferences table
-        flow = [0, 3, 5, 8, 10]
 
         # adding edge from origin 's' to each teacher
         # with capacity equals to their subjects_offered
@@ -271,7 +271,7 @@ class Graph:
 
         for i in range(0, len(self.list_adj) - 1):
             trade = False
-            for source, destiny, [flow, capacity] in edges:  # edge = [source, destiny, (flow, capacity)]
+            for source, destiny, [flow, _] in edges:  # edge = [source, destiny, (flow, capacity)]
                 if dist[destiny] > dist[source] + flow:
                     dist[destiny] = dist[source] + flow
                     pred[destiny] = source
@@ -291,6 +291,9 @@ class Graph:
         shortest_path.reverse()
 
         return shortest_path
+
+    def successfulShortestPaths(self):
+        print("TO-DO")
 
     def run(self, teachers_file: str, subjects_file: str) -> None:
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
