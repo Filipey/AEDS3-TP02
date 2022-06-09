@@ -1,6 +1,6 @@
 ﻿Disciplina;Nome;# Turmas
 CSI000;Eletiva;10
-CSI030;Programacao de Computadores I;4
+CSI030;Programacao de Computadores I;6
 CSI032;Programacao de Computadores II;2
 CSI145;Fundamentos de Sistemas de Informacao;2
 CSI148;Analise Numérica;2
@@ -8,7 +8,7 @@ CSI201;Introducao a Engenharia da Computacao;1
 CSI203;Org. e Arq. de Computadores I;3
 CSI419;Linguagens de Programacao;2
 CSI427;Metodologia de Pesquisa em Computacao;1
-CSI428;Algoritmos e Estrutura de Dados I;4
+CSI428;Algoritmos e Estrutura de Dados I;5
 CSI429;Algoritmos e Estrutura de Dados II;2
 CSI433;Sistemas Distribuidos;2
 CSI437;Sistemas Operacionais;2
