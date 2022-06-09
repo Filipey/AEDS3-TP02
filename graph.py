@@ -176,7 +176,9 @@ class Graph:
             teacher_capacity = copy[i]
             self.addEdge(origin[i], destiny_teacher, teacher_capacity)
 
-        self.mat_adj[0][0] = 0  # Removing link in origin vertex
+        # Removing link in origin vertex
+        self.mat_adj[0][0] = 0
+        self.list_adj[0].pop(0)
 
     def setDestinyEdges(self, initial_vertex: int, subjects_info: list) -> None:
         """
