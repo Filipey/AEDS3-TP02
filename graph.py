@@ -20,6 +20,7 @@ class Graph:
 
         self.subjects_index = {}
         self.teachers_index = {}
+        self.num_of_classes = None
 
     def addEdge(self, source, destiny, capacity=float("inf"), flow=0) -> None:
         """
@@ -103,7 +104,8 @@ class Graph:
             teachers = df.iloc[:, 0].dropna().values.tolist()  # Get values of column Professor, removing NaN values
 
             subjects_offered = df.iloc[:, 1].values.tolist()  # Get the subjects offered of each teacher
-            subjects_offered.pop(-1)  # Removed unused total of subjects offered
+            if filename == 'professores_csv':
+                subjects_offered.pop(-1)  # Removed unused total of subjects offered
 
             subjects = df.iloc[:, [2, 3, 4, 5, 6]].values.tolist()  # Get values of columns Preferencia's,
 
@@ -114,8 +116,7 @@ class Graph:
         except IOError:
             sys.exit("The file doesnt exists in /dataset")
 
-    @staticmethod
-    def readSubjects(filename: str) -> tuple:
+    def readSubjects(self, filename: str) -> tuple:
         """
         Read subjects file and return formatted data
 
@@ -128,6 +129,8 @@ class Graph:
             data = df.iloc[:, ].values.tolist()  # Get all data into a list
 
             num_of_classes = data.pop(-1)[2]  # Remove last line that contains the total of classes
+
+            self.num_of_classes = num_of_classes
 
             total_of_subjects = len(df.iloc[:, 0].dropna().values.tolist())  # Get the total of subjects offered
 
@@ -147,14 +150,14 @@ class Graph:
         """
         (teachers, num_of_subject_offered, subjects_offered) = teachers_data
 
+        for i in range(0, len(teachers)):
+            self.teachers_index[i+1] = (teachers[i], num_of_subject_offered[i], subjects_offered[i])
+
         for j in range(subjects_initial_vertex, self.num_vet - 1):
             for subject in subjects_info:
                 self.subjects_index[j] = subject
                 subjects_info.remove(subject)
                 break
-
-        for i in range(0, len(teachers)):
-            self.teachers_index[i+1] = (teachers[i], num_of_subject_offered[i], subjects_offered[i])
 
     def setOriginEdges(self, teachers: list, subjects_offered: list) -> None:
         """
@@ -168,12 +171,14 @@ class Graph:
         copy = [0]
         copy = copy + subjects_offered.copy()
 
-        for i in range(0, len(teachers)):
+        for i in range(0, len(teachers) + 1):
             destiny_teacher = i
             teacher_capacity = copy[i]
             self.addEdge(origin[i], destiny_teacher, teacher_capacity)
 
-        self.mat_adj[0][0] = 0  # Removing link in origin vertex
+        # Removing link in origin vertex
+        self.mat_adj[0][0] = 0
+        self.list_adj[0].pop(0)
 
     def setDestinyEdges(self, initial_vertex: int, subjects_info: list) -> None:
         """
@@ -204,6 +209,9 @@ class Graph:
         teachersIndexes = self.teachers_index
         subjectsIndexes = self.subjects_index
 
+        # flow value based on the preferences table
+        flow = [0, 3, 5, 8, 10]
+
         for key, (_, classes_offered, [*subjects]) in teachersIndexes.items():
             total_classes_offered = 0
             for subjectKey, (subjectId, _, classes) in subjectsIndexes.items():
@@ -212,7 +220,7 @@ class Graph:
                 if classes_offered == 0:
                     break
                 if subjectId in subjects:
-                    self.addEdge(key, subjectKey, classes)
+                    self.addEdge(key, subjectKey, classes, flow[subjects.index(subjectId)])
                     total_classes_offered += 1
 
     def setInitialData(self, teachers_data: tuple, subjects_data: tuple):
@@ -232,9 +240,6 @@ class Graph:
         # updating data structures with new data
         self.mat_adj = [[0 for _ in range(self.num_vet)] for _ in range(self.num_vet)]
         self.list_adj = [[] for _ in range(self.num_vet)]
-
-        # flow value based on the preferences table
-        flow = [0, 3, 5, 8, 10]
 
         # adding edge from origin 's' to each teacher
         # with capacity equals to their subjects_offered
@@ -271,7 +276,7 @@ class Graph:
 
         for i in range(0, len(self.list_adj) - 1):
             trade = False
-            for source, destiny, [flow, capacity] in edges:  # edge = [source, destiny, (flow, capacity)]
+            for source, destiny, [flow, _] in edges:  # edge = [source, destiny, (flow, capacity)]
                 if dist[destiny] > dist[source] + flow:
                     dist[destiny] = dist[source] + flow
                     pred[destiny] = source
@@ -292,5 +297,35 @@ class Graph:
 
         return shortest_path
 
+    def getFlowByVertex(self):
+        """
+        Get the flow that should pass for each vertex
+
+        :return: List with flow of each vertex
+        """
+        b = [self.num_of_classes]
+
+        for _, [_, flow, [*_]] in self.teachers_index.items():
+            b.append(flow)
+
+        for _, [_, _, flow] in self.subjects_index.items():
+            b.append(flow)
+
+        b.append(-self.num_of_classes)
+
+        return b
+
+    def successfulShortestPaths(self, s: int, t: int):
+        F = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
+        b = self.getFlowByVertex()
+        C = self.bellmanFord(s, t)
+
+        while len(C) != 0 and b[s] != 0:
+            f = float("inf")
+            for i in range(1, len(C)):
+                u = C[i - 1]
+                v = C[i]
+
     def run(self, teachers_file: str, subjects_file: str) -> None:
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
+        self.successfulShortestPaths(0, self.num_vet - 1)
