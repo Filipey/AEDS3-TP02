@@ -151,7 +151,7 @@ class Graph:
         (teachers, num_of_subject_offered, subjects_offered) = teachers_data
 
         for i in range(0, len(teachers)):
-            self.teachers_index[i+1] = (teachers[i], num_of_subject_offered[i], subjects_offered)
+            self.teachers_index[i+1] = (teachers[i], num_of_subject_offered[i], subjects_offered[i])
 
         for j in range(subjects_initial_vertex, self.num_vet - 1):
             for subject in subjects_info:
@@ -174,7 +174,7 @@ class Graph:
         for i in range(0, len(teachers) + 1):
             destiny_teacher = i
             teacher_capacity = copy[i]
-            self.addEdge(origin[i], destiny_teacher, teacher_capacity, teacher_capacity)
+            self.addEdge(origin[i], destiny_teacher, teacher_capacity)
 
         self.mat_adj[0][0] = 0  # Removing link in origin vertex
 
@@ -196,7 +196,7 @@ class Graph:
                 subject_capacity = c
                 subjects_capacities.remove(c)
                 break
-            self.addEdge(origin_subject, destiny, subject_capacity, subject_capacity)
+            self.addEdge(origin_subject, destiny, subject_capacity)
 
     def setTeachersToSubjectsEdges(self):
         """
