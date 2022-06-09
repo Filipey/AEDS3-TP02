@@ -193,7 +193,7 @@ class Graph:
                 subject_capacity = c
                 subjects_capacities.remove(c)
                 break
-            self.addEdge(origin_subject, destiny, subject_capacity)
+            self.addEdge(origin_subject, destiny, subject_capacity, subject_capacity)
 
     def setTeachersToSubjectsEdges(self):
         """
