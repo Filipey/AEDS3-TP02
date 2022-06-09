@@ -104,7 +104,8 @@ class Graph:
             teachers = df.iloc[:, 0].dropna().values.tolist()  # Get values of column Professor, removing NaN values
 
             subjects_offered = df.iloc[:, 1].values.tolist()  # Get the subjects offered of each teacher
-            subjects_offered.pop(-1)  # Removed unused total of subjects offered
+            if filename == 'professores_csv':
+                subjects_offered.pop(-1)  # Removed unused total of subjects offered
 
             subjects = df.iloc[:, [2, 3, 4, 5, 6]].values.tolist()  # Get values of columns Preferencia's,
 
@@ -149,14 +150,14 @@ class Graph:
         """
         (teachers, num_of_subject_offered, subjects_offered) = teachers_data
 
+        for i in range(0, len(teachers)):
+            self.teachers_index[i+1] = (teachers[i], num_of_subject_offered[i], subjects_offered)
+
         for j in range(subjects_initial_vertex, self.num_vet - 1):
             for subject in subjects_info:
                 self.subjects_index[j] = subject
                 subjects_info.remove(subject)
                 break
-
-        for i in range(0, len(teachers)):
-            self.teachers_index[i+1] = (teachers[i], num_of_subject_offered[i], subjects_offered[i])
 
     def setOriginEdges(self, teachers: list, subjects_offered: list) -> None:
         """
@@ -170,7 +171,7 @@ class Graph:
         copy = [0]
         copy = copy + subjects_offered.copy()
 
-        for i in range(0, len(teachers)):
+        for i in range(0, len(teachers) + 1):
             destiny_teacher = i
             teacher_capacity = copy[i]
             self.addEdge(origin[i], destiny_teacher, teacher_capacity, teacher_capacity)
@@ -313,7 +314,7 @@ class Graph:
         return b
 
     def successfulShortestPaths(self, s: int, t: int):
-        F = [[0 for i in range(len(self.mat_adj))] for i in range(len(self.mat_adj))]
+        F = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
         b = self.getFlowByVertex()
         C = self.bellmanFord(s, t)
 
