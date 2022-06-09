@@ -21,7 +21,7 @@ class Graph:
         self.subjects_index = {}
         self.teachers_index = {}
 
-    def addEdge(self, source, destiny, capacity=float("inf"), flow=None) -> None:
+    def addEdge(self, source, destiny, capacity=float("inf"), flow=0) -> None:
         """
         Add an edge on graph in format (source, destiny, (flow, capacity))
 
@@ -31,8 +31,8 @@ class Graph:
         :param capacity: Capacity of the edge
         """
         if source < self.num_vet and destiny < self.num_vet:
-            self.mat_adj[source][destiny] = (flow, capacity)
-            self.list_adj[source].append((destiny, (flow, capacity)))
+            self.mat_adj[source][destiny] = [flow, capacity]
+            self.list_adj[source].append((destiny, [flow, capacity]))
             self.num_edg += 1
         else:
             sys.exit("Invalid Edge")
@@ -68,11 +68,13 @@ class Graph:
 
         for i in range(0, len(self.mat_adj)):
             for j in range(0, len(self.mat_adj[i])):
-                edges_list.append((i, j, self.mat_adj[i][j]))
+                if self.mat_adj[i][j] != 0:
+                    edges_list.append((i, j, self.mat_adj[i][j]))
 
         return edges_list
 
-    def cleanSubjects(self, subjects) -> list:
+    @staticmethod
+    def cleanSubjects(subjects) -> list:
         """
         Removed unusual data from subjects list
 
@@ -112,7 +114,8 @@ class Graph:
         except IOError:
             sys.exit("The file doesnt exists in /dataset")
 
-    def readSubjects(self, filename: str) -> tuple:
+    @staticmethod
+    def readSubjects(filename: str) -> tuple:
         """
         Read subjects file and return formatted data
 
@@ -170,6 +173,8 @@ class Graph:
             teacher_capacity = copy[i]
             self.addEdge(origin[i], destiny_teacher, teacher_capacity)
 
+        self.mat_adj[0][0] = 0  # Removing link in origin vertex
+
     def setDestinyEdges(self, initial_vertex: int, subjects_info: list) -> None:
         """
         Set edges from subjects to destiny vertex
@@ -200,13 +205,15 @@ class Graph:
         subjectsIndexes = self.subjects_index
 
         for key, (_, classes_offered, [*subjects]) in teachersIndexes.items():
+            total_classes_offered = 0
             for subjectKey, (subjectId, _, classes) in subjectsIndexes.items():
+                if total_classes_offered == len(subjects):
+                    break
                 if classes_offered == 0:
                     break
                 if subjectId in subjects:
                     self.addEdge(key, subjectKey, classes)
-                    classes_offered -= 1
-
+                    total_classes_offered += 1
 
     def setInitialData(self, teachers_data: tuple, subjects_data: tuple):
         """
@@ -248,8 +255,6 @@ class Graph:
         # updating num_edg after set all initial edges
         self.num_edg = len(teachers) + total_of_subjects + num_of_classes
 
-
-
     def bellmanFord(self, s: int, v: int) -> list:
         """
         Algorithm to get the shortest path from s to v
@@ -266,7 +271,7 @@ class Graph:
 
         for i in range(0, len(self.list_adj) - 1):
             trade = False
-            for [source, destiny, (flow, capacity)] in edges:  # edge = [source, destiny, (flow, capacity)]
+            for source, destiny, [flow, capacity] in edges:  # edge = [source, destiny, (flow, capacity)]
                 if dist[destiny] > dist[source] + flow:
                     dist[destiny] = dist[source] + flow
                     pred[destiny] = source
@@ -282,6 +287,8 @@ class Graph:
                 break
             shortest_path.append(i)
             i = pred[i]
+
+        shortest_path.reverse()
 
         return shortest_path
 
