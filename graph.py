@@ -335,8 +335,40 @@ class Graph:
         edges = self.getEdgesList()
         flow_for_vertex = self.getFlowByVertex()
         flow_of_edges = self.getFlowOfEachEdge()
+        aux_flow_of_edges = self.getFlowOfEachEdge()
         shortest_path = self.bellmanFord(s, t)
 
+        while len(shortest_path) != 0 and flow_for_vertex[s] != 0:
+            f = float("inf")
+            for i in range(1, len(shortest_path)):
+                u = shortest_path[i - 1]
+                v = shortest_path[i]
+
+                if aux_flow_of_edges[u][v] < f:
+                    f = aux_flow_of_edges[u][v]
+
+            for i in range(1, len(shortest_path)):
+                u = shortest_path[i - 1]
+                v = shortest_path[i]
+                F[u][v] += f
+                aux_flow_of_edges[u][v] -= f
+                aux_flow_of_edges[v][u] += f
+                flow_for_vertex[s] -= f
+                flow_for_vertex[s] -= f
+                flow_for_vertex[t] += f
+
+                if aux_flow_of_edges[u][v] == 0:
+                    self.mat_adj[u][v] = 0
+                    edges.remove((u, v, flow_of_edges[u][v]))
+
+                if self.mat_adj[v][u] == 0:
+                    self.mat_adj[v][u] = 1
+                    edges.append((v, u, -flow_of_edges[u][v]))
+                    flow_of_edges[v][u] = -flow_of_edges[u][v]
+
+            shortest_path = self.bellmanFord(s, t)
+
+        return F
 
     def run(self, teachers_file: str, subjects_file: str) -> None:
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
