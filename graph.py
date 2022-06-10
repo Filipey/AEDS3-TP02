@@ -70,7 +70,8 @@ class Graph:
         for i in range(0, len(self.mat_adj)):
             for j in range(0, len(self.mat_adj[i])):
                 if self.mat_adj[i][j] != 0:
-                    edges_list.append((i, j, self.mat_adj[i][j]))
+                    [flow, _] = self.mat_adj[i][j]
+                    edges_list.append((i, j, flow))
 
         return edges_list
 
@@ -104,8 +105,8 @@ class Graph:
             teachers = df.iloc[:, 0].dropna().values.tolist()  # Get values of column Professor, removing NaN values
 
             subjects_offered = df.iloc[:, 1].values.tolist()  # Get the subjects offered of each teacher
-            if filename == 'professores_csv':
-                subjects_offered.pop(-1)  # Removed unused total of subjects offered
+
+            subjects_offered.pop(-1)  # Removed unused total of subjects offered
 
             subjects = df.iloc[:, [2, 3, 4, 5, 6]].values.tolist()  # Get values of columns Preferencia's,
 
@@ -273,7 +274,7 @@ class Graph:
 
         for i in range(0, len(self.list_adj) - 1):
             trade = False
-            for source, sink, [flow, _] in edges:  # edge = [source, sink, (flow, capacity)]
+            for source, sink, flow in edges:  # edge = [source, sink, flow]
                 if dist[sink] > dist[source] + flow:
                     dist[sink] = dist[source] + flow
                     pred[sink] = source
@@ -312,16 +313,30 @@ class Graph:
 
         return b
 
+    def getFlowOfEachEdge(self):
+        """
+        Get the flow passed of each edge in the graph
+
+        :return: Matrix with flow of each edge
+        """
+
+        flow_of_edge = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
+
+        for i in range(0, len(self.mat_adj)):
+            for j in range(0, len(self.mat_adj[i])):
+                if self.mat_adj[i][j] != 0:
+                    [flow, _] = self.mat_adj[i][j]
+                    flow_of_edge[i][j] = flow
+
+        return flow_of_edge
+
     def successfulShortestPaths(self, s: int, t: int):
         F = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
-        b = self.getFlowByVertex()
-        C = self.bellmanFord(s, t)
+        edges = self.getEdgesList()
+        flow_for_vertex = self.getFlowByVertex()
+        flow_of_edges = self.getFlowOfEachEdge()
+        shortest_path = self.bellmanFord(s, t)
 
-        while len(C) != 0 and b[s] != 0:
-            f = float("inf")
-            for i in range(1, len(C)):
-                u = C[i - 1]
-                v = C[i]
 
     def run(self, teachers_file: str, subjects_file: str) -> None:
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
