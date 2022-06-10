@@ -21,6 +21,7 @@ class Graph:
         self.subjects_index = {}
         self.teachers_index = {}
         self.num_of_classes = None
+        self.edges_list = []
 
     def addEdge(self, source, sink, capacity=float("inf"), flow=0) -> None:
         """
@@ -59,21 +60,21 @@ class Graph:
         else:
             sys.exit("Invalid Edge")
 
-    def getEdgesList(self) -> list:
+    def SetEdgesList(self) -> None:
         """
-        Get list of edges in format: source_vertex, sink_vertex, (flow, capacity)
+        Set list of edges in format: source_vertex, sink_vertex, (flow, capacity)
 
-        :return: List of edges
+        :return: Updated list of edges
         """
-        edges_list = []
 
         for i in range(0, len(self.mat_adj)):
             for j in range(0, len(self.mat_adj[i])):
                 if self.mat_adj[i][j] != 0:
-                    [flow, _] = self.mat_adj[i][j]
-                    edges_list.append((i, j, flow))
-
-        return edges_list
+                    if type(self.mat_adj[i][j]) is list:
+                        [flow, _] = self.mat_adj[i][j]
+                    else:
+                        flow = self.mat_adj[i][j]
+                    self.edges_list.append((i, j, flow))
 
     @staticmethod
     def cleanSubjects(subjects) -> list:
@@ -258,6 +259,8 @@ class Graph:
         # subject with capacity equals to subject number of classes
         self.setTeachersToSubjectsEdges()
 
+        self.SetEdgesList()
+
     def bellmanFord(self, s: int, v: int) -> list:
         """
         Algorithm to get the shortest path from s to v
@@ -268,7 +271,7 @@ class Graph:
         """
         dist = [float("inf") for _ in range(len(self.list_adj))]
         pred = [None for _ in range(len(self.list_adj))]
-        edges = self.getEdgesList()
+        edges = self.edges_list
 
         dist[s] = 0
 
@@ -290,6 +293,9 @@ class Graph:
                 break
             shortest_path.append(i)
             i = pred[i]
+
+        if len(shortest_path) == 1:
+            shortest_path.clear()
 
         shortest_path.reverse()
 
@@ -313,7 +319,7 @@ class Graph:
 
         return b
 
-    def getFlowOfEachEdge(self):
+    def getFlowAndCapacityOfEachEdge(self) -> tuple:
         """
         Get the flow passed of each edge in the graph
 
@@ -321,21 +327,21 @@ class Graph:
         """
 
         flow_of_edge = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
+        capacity_of_edges = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
 
         for i in range(0, len(self.mat_adj)):
             for j in range(0, len(self.mat_adj[i])):
                 if self.mat_adj[i][j] != 0:
-                    [flow, _] = self.mat_adj[i][j]
+                    [flow, capacity] = self.mat_adj[i][j]
                     flow_of_edge[i][j] = flow
+                    capacity_of_edges[i][j] = capacity
 
-        return flow_of_edge
+        return flow_of_edge, capacity_of_edges
 
     def successfulShortestPaths(self, s: int, t: int):
         F = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
-        edges = self.getEdgesList()
         flow_for_vertex = self.getFlowByVertex()
-        flow_of_edges = self.getFlowOfEachEdge()
-        aux_flow_of_edges = self.getFlowOfEachEdge()
+        flow_of_edges, capacity_of_edges = self.getFlowAndCapacityOfEachEdge()
         shortest_path = self.bellmanFord(s, t)
 
         while len(shortest_path) != 0 and flow_for_vertex[s] != 0:
@@ -344,26 +350,25 @@ class Graph:
                 u = shortest_path[i - 1]
                 v = shortest_path[i]
 
-                if aux_flow_of_edges[u][v] < f:
-                    f = aux_flow_of_edges[u][v]
+                if capacity_of_edges[u][v] < f:
+                    f = capacity_of_edges[u][v]
 
             for i in range(1, len(shortest_path)):
                 u = shortest_path[i - 1]
                 v = shortest_path[i]
                 F[u][v] += f
-                aux_flow_of_edges[u][v] -= f
-                aux_flow_of_edges[v][u] += f
-                flow_for_vertex[s] -= f
+                capacity_of_edges[u][v] -= f
+                capacity_of_edges[v][u] += f
                 flow_for_vertex[s] -= f
                 flow_for_vertex[t] += f
 
-                if aux_flow_of_edges[u][v] == 0:
+                if capacity_of_edges[u][v] == 0:
                     self.mat_adj[u][v] = 0
-                    edges.remove((u, v, flow_of_edges[u][v]))
+                    self.edges_list.remove((u, v, flow_of_edges[u][v]))
 
                 if self.mat_adj[v][u] == 0:
                     self.mat_adj[v][u] = 1
-                    edges.append((v, u, -flow_of_edges[u][v]))
+                    self.edges_list.append((v, u, -flow_of_edges[u][v]))
                     flow_of_edges[v][u] = -flow_of_edges[u][v]
 
             shortest_path = self.bellmanFord(s, t)
