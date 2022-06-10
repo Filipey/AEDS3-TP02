@@ -22,36 +22,36 @@ class Graph:
         self.teachers_index = {}
         self.num_of_classes = None
 
-    def addEdge(self, source, destiny, capacity=float("inf"), flow=0) -> None:
+    def addEdge(self, source, sink, capacity=float("inf"), flow=0) -> None:
         """
-        Add an edge on graph in format (source, destiny, (flow, capacity))
+        Add an edge on graph in format (source, sink, (flow, capacity))
 
         :param flow: Flow value
         :param source: Source vertex
-        :param destiny: Destiny vertex
+        :param sink: Destiny vertex
         :param capacity: Capacity of the edge
         """
-        if source < self.num_vet and destiny < self.num_vet:
-            self.mat_adj[source][destiny] = [flow, capacity]
-            self.list_adj[source].append((destiny, [flow, capacity]))
+        if source < self.num_vet and sink < self.num_vet:
+            self.mat_adj[source][sink] = [flow, capacity]
+            self.list_adj[source].append((sink, [flow, capacity]))
             self.num_edg += 1
         else:
             sys.exit("Invalid Edge")
 
-    def removeEdge(self, source, destiny) -> None:
+    def removeEdge(self, source, sink) -> None:
         """
         Delete a edge from graph
 
         :param source: Source vertex
-        :param destiny: Destiny vertex
+        :param sink: Destiny vertex
         """
-        if source < self.num_vet and destiny < self.num_vet:
-            if self.mat_adj[source][destiny] != 0:
+        if source < self.num_vet and sink < self.num_vet:
+            if self.mat_adj[source][sink] != 0:
                 self.num_edg -= 1
-                self.mat_adj[source][destiny] = 0
+                self.mat_adj[source][sink] = 0
 
                 for (v, w) in self.list_adj[source]:
-                    if v == destiny:
+                    if v == sink:
                         self.list_adj[source].remove((v, w))
                         break
 
@@ -61,7 +61,7 @@ class Graph:
 
     def getEdgesList(self) -> list:
         """
-        Get list of edges in format: source_vertex, destiny_vertex, (flow, capacity)
+        Get list of edges in format: source_vertex, sink_vertex, (flow, capacity)
 
         :return: List of edges
         """
@@ -70,7 +70,8 @@ class Graph:
         for i in range(0, len(self.mat_adj)):
             for j in range(0, len(self.mat_adj[i])):
                 if self.mat_adj[i][j] != 0:
-                    edges_list.append((i, j, self.mat_adj[i][j]))
+                    [flow, _] = self.mat_adj[i][j]
+                    edges_list.append((i, j, flow))
 
         return edges_list
 
@@ -104,8 +105,8 @@ class Graph:
             teachers = df.iloc[:, 0].dropna().values.tolist()  # Get values of column Professor, removing NaN values
 
             subjects_offered = df.iloc[:, 1].values.tolist()  # Get the subjects offered of each teacher
-            if filename == 'professores_csv':
-                subjects_offered.pop(-1)  # Removed unused total of subjects offered
+
+            subjects_offered.pop(-1)  # Removed unused total of subjects offered
 
             subjects = df.iloc[:, [2, 3, 4, 5, 6]].values.tolist()  # Get values of columns Preferencia's,
 
@@ -159,46 +160,46 @@ class Graph:
                 subjects_info.remove(subject)
                 break
 
-    def setOriginEdges(self, teachers: list, subjects_offered: list) -> None:
+    def setSourceEdges(self, teachers: list, subjects_offered: list) -> None:
         """
-        Set edges from origin vertex to teachers
+        Set edges from source vertex to teachers
 
         :param teachers: List of teachers
         :param subjects_offered: List of subjects that each teacher apply
-        :return: Edges from origin vertex to tier 1 (origin -> teachers)
+        :return: Edges from source vertex to tier 1 (source -> teachers)
         """
-        origin = self.mat_adj[0]
+        source = self.mat_adj[0]
         copy = [0]
         copy = copy + subjects_offered.copy()
 
         for i in range(0, len(teachers) + 1):
-            destiny_teacher = i
+            sink_teacher = i
             teacher_capacity = copy[i]
-            self.addEdge(origin[i], destiny_teacher, teacher_capacity)
+            self.addEdge(source[i], sink_teacher, teacher_capacity)
 
-        # Removing link in origin vertex
+        # Removing link in source vertex
         self.mat_adj[0][0] = 0
         self.list_adj[0].pop(0)
 
-    def setDestinyEdges(self, initial_vertex: int, subjects_info: list) -> None:
+    def setSinkEdges(self, initial_vertex: int, subjects_info: list) -> None:
         """
-        Set edges from subjects to destiny vertex
+        Set edges from subjects to sink vertex
 
         :param initial_vertex: Vertex where starts tier 2 (Subjects)
         :param subjects_info: List of subjects in format [[Id, Name, Num_of_classes]]
-        :return: Edges from each subject to destiny vertex (subject -> destiny)
+        :return: Edges from each subject to sink vertex (subject -> sink)
         """
         subjects_capacities = [c[2] for c in subjects_info]
-        destiny = self.num_vet - 1
+        sink = self.num_vet - 1
         subject_capacity = None
 
         for i in range(initial_vertex, self.num_vet - 1):
-            origin_subject = i
+            source_subject = i
             for c in subjects_capacities:
                 subject_capacity = c
                 subjects_capacities.remove(c)
                 break
-            self.addEdge(origin_subject, destiny, subject_capacity)
+            self.addEdge(source_subject, sink, subject_capacity)
 
     def setTeachersToSubjectsEdges(self):
         """
@@ -241,13 +242,13 @@ class Graph:
         self.mat_adj = [[0 for _ in range(self.num_vet)] for _ in range(self.num_vet)]
         self.list_adj = [[] for _ in range(self.num_vet)]
 
-        # adding edge from origin 's' to each teacher
+        # adding edge from source 's' to each teacher
         # with capacity equals to their subjects_offered
-        self.setOriginEdges(teachers, subjects_offered)
+        self.setSourceEdges(teachers, subjects_offered)
 
-        # adding edge from each subject to destiny 't'
+        # adding edge from each subject to sink 't'
         # with capacity equals to number of classes of the subject
-        self.setDestinyEdges(len(teachers) + 1, subjects_info)
+        self.setSinkEdges(len(teachers) + 1, subjects_info)
 
         # setting key/value dictionary of teachers
         # and subjects in format {index: value}
@@ -257,15 +258,12 @@ class Graph:
         # subject with capacity equals to subject number of classes
         self.setTeachersToSubjectsEdges()
 
-        # updating num_edg after set all initial edges
-        self.num_edg = len(teachers) + total_of_subjects + num_of_classes
-
     def bellmanFord(self, s: int, v: int) -> list:
         """
         Algorithm to get the shortest path from s to v
 
-        :param s: origin vertex
-        :param v: destiny vertex
+        :param s: source vertex
+        :param v: sink vertex
         :return: shortest path
         """
         dist = [float("inf") for _ in range(len(self.list_adj))]
@@ -276,10 +274,10 @@ class Graph:
 
         for i in range(0, len(self.list_adj) - 1):
             trade = False
-            for source, destiny, [flow, _] in edges:  # edge = [source, destiny, (flow, capacity)]
-                if dist[destiny] > dist[source] + flow:
-                    dist[destiny] = dist[source] + flow
-                    pred[destiny] = source
+            for source, sink, flow in edges:  # edge = [source, sink, flow]
+                if dist[sink] > dist[source] + flow:
+                    dist[sink] = dist[source] + flow
+                    pred[sink] = source
                     trade = True
 
             if trade is False:
@@ -315,16 +313,62 @@ class Graph:
 
         return b
 
+    def getFlowOfEachEdge(self):
+        """
+        Get the flow passed of each edge in the graph
+
+        :return: Matrix with flow of each edge
+        """
+
+        flow_of_edge = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
+
+        for i in range(0, len(self.mat_adj)):
+            for j in range(0, len(self.mat_adj[i])):
+                if self.mat_adj[i][j] != 0:
+                    [flow, _] = self.mat_adj[i][j]
+                    flow_of_edge[i][j] = flow
+
+        return flow_of_edge
+
     def successfulShortestPaths(self, s: int, t: int):
         F = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
-        b = self.getFlowByVertex()
-        C = self.bellmanFord(s, t)
+        edges = self.getEdgesList()
+        flow_for_vertex = self.getFlowByVertex()
+        flow_of_edges = self.getFlowOfEachEdge()
+        aux_flow_of_edges = self.getFlowOfEachEdge()
+        shortest_path = self.bellmanFord(s, t)
 
-        while len(C) != 0 and b[s] != 0:
+        while len(shortest_path) != 0 and flow_for_vertex[s] != 0:
             f = float("inf")
-            for i in range(1, len(C)):
-                u = C[i - 1]
-                v = C[i]
+            for i in range(1, len(shortest_path)):
+                u = shortest_path[i - 1]
+                v = shortest_path[i]
+
+                if aux_flow_of_edges[u][v] < f:
+                    f = aux_flow_of_edges[u][v]
+
+            for i in range(1, len(shortest_path)):
+                u = shortest_path[i - 1]
+                v = shortest_path[i]
+                F[u][v] += f
+                aux_flow_of_edges[u][v] -= f
+                aux_flow_of_edges[v][u] += f
+                flow_for_vertex[s] -= f
+                flow_for_vertex[s] -= f
+                flow_for_vertex[t] += f
+
+                if aux_flow_of_edges[u][v] == 0:
+                    self.mat_adj[u][v] = 0
+                    edges.remove((u, v, flow_of_edges[u][v]))
+
+                if self.mat_adj[v][u] == 0:
+                    self.mat_adj[v][u] = 1
+                    edges.append((v, u, -flow_of_edges[u][v]))
+                    flow_of_edges[v][u] = -flow_of_edges[u][v]
+
+            shortest_path = self.bellmanFord(s, t)
+
+        return F
 
     def run(self, teachers_file: str, subjects_file: str) -> None:
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
