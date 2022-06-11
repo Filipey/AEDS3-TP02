@@ -97,10 +97,7 @@ class Graph:
         for i in range(0, len(self.mat_adj)):
             for j in range(0, len(self.mat_adj[i])):
                 if self.mat_adj[i][j] != 0:
-                    if type(self.mat_adj[i][j]) is list:
-                        [flow, _] = self.mat_adj[i][j]
-                    else:
-                        flow = self.mat_adj[i][j]
+                    [flow, _] = self.mat_adj[i][j]
                     self.edges_list.append((i, j, flow))
 
     @staticmethod
@@ -373,7 +370,7 @@ class Graph:
 
     def successfulShortestPaths(self, s: int, t: int) -> list:
         """
-        Succesful shortest paths algorithm
+        Successful shortest paths algorithm
 
         :param s: network source vertex
         :param t: network sink vertex
@@ -385,7 +382,7 @@ class Graph:
         flow_of_edges, capacity_of_edges = self.getFlowAndCapacityOfEachEdge()
         shortest_path = self.bellmanFord(s, t)
 
-        while len(shortest_path) != 0 and flow_for_vertex[s] != 0:
+        while len(shortest_path) != 0 and flow_for_vertex[t] != 0:
             max_flow = float("inf")
             for i in range(1, len(shortest_path)):
                 u = shortest_path[i - 1]
@@ -399,9 +396,6 @@ class Graph:
                 v = shortest_path[i]
                 F[u][v] += max_flow
                 capacity_of_edges[u][v] -= max_flow
-                capacity_of_edges[v][u] += max_flow
-                flow_for_vertex[s] -= max_flow
-                flow_for_vertex[t] += max_flow
 
                 if capacity_of_edges[u][v] == 0:
                     self.mat_adj[u][v] = 0
@@ -411,6 +405,14 @@ class Graph:
                     self.mat_adj[v][u] = 1
                     self.edges_list.append((v, u, -flow_of_edges[u][v]))
                     flow_of_edges[v][u] = -flow_of_edges[u][v]
+
+                capacity_of_edges[v][u] += max_flow
+
+                if F[v][u] != 0:
+                    F[v][u] -= max_flow
+
+            flow_for_vertex[s] -= max_flow
+            flow_for_vertex[t] += max_flow
 
             shortest_path = self.bellmanFord(s, t)
 
@@ -458,7 +460,7 @@ class Graph:
         :return:
         """
         option = None
-        print("\nWelcome to the DECSI resource allocation algorithm")
+        print("\nWelcome to the DECSI resource allocation script")
 
         while option != '-1':
             option = input("\n(1) Get the toy's resource allocation\n(2) Get the original resource allocation\n"
@@ -476,8 +478,14 @@ class Graph:
                 break
 
             else:
-                print("Invalid operation")
+                print("\nInvalid operation. Try again")
 
     def run(self, teachers_file: str, subjects_file: str) -> None:
+        """
+        Script main function
+
+        :param teachers_file: name of the csv teachers file in /dataset
+        :param subjects_file: name of the csv subjects file in /dataset
+        """
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
         self.formatData(self.successfulShortestPaths(0, self.num_vet - 1))
