@@ -21,6 +21,34 @@ class Graph:
         self.subjects_index = {}
         self.teachers_index = {}
         self.num_of_classes = None
+        self.edges_list = []
+
+    def reset(self, num_vet=0, num_edg=0, mat_adj: list = None, list_adj: list = None):
+        """
+        Function to reset object for CLI use
+
+        :param num_vet: number of vertexes
+        :param num_edg: number of edges
+        :param mat_adj: adjacency matrix
+        :param list_adj: adjacency list
+        """
+        self.num_vet = num_vet
+        self.num_edg = num_edg
+
+        if mat_adj is None:
+            self.mat_adj = [[0 for _ in range(num_vet)] for _ in range(num_vet)]
+        else:
+            self.mat_adj = mat_adj
+
+        if list_adj is None:
+            self.list_adj = [[] for _ in range(num_vet)]
+        else:
+            self.list_adj = list_adj
+
+        self.subjects_index = {}
+        self.teachers_index = {}
+        self.num_of_classes = None
+        self.edges_list = []
 
     def addEdge(self, source, sink, capacity=float("inf"), flow=0) -> None:
         """
@@ -40,7 +68,7 @@ class Graph:
 
     def removeEdge(self, source, sink) -> None:
         """
-        Delete a edge from graph
+        Delete an edge from graph
 
         :param source: Source vertex
         :param sink: Destiny vertex
@@ -59,21 +87,18 @@ class Graph:
         else:
             sys.exit("Invalid Edge")
 
-    def getEdgesList(self) -> list:
+    def SetEdgesList(self) -> None:
         """
-        Get list of edges in format: source_vertex, sink_vertex, (flow, capacity)
+        Set list of edges in format: source_vertex, sink_vertex, (flow, capacity)
 
-        :return: List of edges
+        :return: Updated list of edges
         """
-        edges_list = []
 
         for i in range(0, len(self.mat_adj)):
             for j in range(0, len(self.mat_adj[i])):
                 if self.mat_adj[i][j] != 0:
                     [flow, _] = self.mat_adj[i][j]
-                    edges_list.append((i, j, flow))
-
-        return edges_list
+                    self.edges_list.append((i, j, flow))
 
     @staticmethod
     def cleanSubjects(subjects) -> list:
@@ -152,7 +177,7 @@ class Graph:
         (teachers, num_of_subject_offered, subjects_offered) = teachers_data
 
         for i in range(0, len(teachers)):
-            self.teachers_index[i+1] = (teachers[i], num_of_subject_offered[i], subjects_offered[i])
+            self.teachers_index[i + 1] = (teachers[i], num_of_subject_offered[i], subjects_offered[i])
 
         for j in range(subjects_initial_vertex, self.num_vet - 1):
             for subject in subjects_info:
@@ -207,20 +232,22 @@ class Graph:
 
         :return: Updated graph data
         """
-        teachersIndexes = self.teachers_index
-        subjectsIndexes = self.subjects_index
+        teachers_indexes = self.teachers_index
+        subjects_indexes = self.subjects_index
 
         # flow value based on the preferences table
         flow = [0, 3, 5, 8, 10]
 
-        for key, (_, classes_offered, [*subjects]) in teachersIndexes.items():
+        for key, (_, classes_offered, [*subjects]) in teachers_indexes.items():
             total_classes_offered = 0
-            for subjectKey, (subjectId, _, classes) in subjectsIndexes.items():
+            for subjectKey, (subjectId, _, classes) in subjects_indexes.items():
                 if total_classes_offered == len(subjects):
                     break
                 if classes_offered == 0:
                     break
                 if subjectId in subjects:
+                    if subjectId == 'CSI000':
+                        classes = 1
                     self.addEdge(key, subjectKey, classes, flow[subjects.index(subjectId)])
                     total_classes_offered += 1
 
@@ -258,6 +285,9 @@ class Graph:
         # subject with capacity equals to subject number of classes
         self.setTeachersToSubjectsEdges()
 
+        # setting all edges into a list
+        self.SetEdgesList()
+
     def bellmanFord(self, s: int, v: int) -> list:
         """
         Algorithm to get the shortest path from s to v
@@ -268,7 +298,7 @@ class Graph:
         """
         dist = [float("inf") for _ in range(len(self.list_adj))]
         pred = [None for _ in range(len(self.list_adj))]
-        edges = self.getEdgesList()
+        edges = self.edges_list
 
         dist[s] = 0
 
@@ -290,6 +320,12 @@ class Graph:
                 break
             shortest_path.append(i)
             i = pred[i]
+
+        # if it has no path from 's' to 'v'
+        # the shortest_path will have only the element [v]
+        if len(shortest_path) == 1:
+            shortest_path.clear()
+            return shortest_path
 
         shortest_path.reverse()
 
@@ -313,7 +349,7 @@ class Graph:
 
         return b
 
-    def getFlowOfEachEdge(self):
+    def getFlowAndCapacityOfEachEdge(self) -> tuple:
         """
         Get the flow passed of each edge in the graph
 
@@ -321,55 +357,135 @@ class Graph:
         """
 
         flow_of_edge = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
+        capacity_of_edges = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
 
         for i in range(0, len(self.mat_adj)):
             for j in range(0, len(self.mat_adj[i])):
                 if self.mat_adj[i][j] != 0:
-                    [flow, _] = self.mat_adj[i][j]
+                    [flow, capacity] = self.mat_adj[i][j]
                     flow_of_edge[i][j] = flow
+                    capacity_of_edges[i][j] = capacity
 
-        return flow_of_edge
+        return flow_of_edge, capacity_of_edges
 
-    def successfulShortestPaths(self, s: int, t: int):
+    def successfulShortestPaths(self, s: int, t: int) -> list:
+        """
+        Successful shortest paths algorithm
+
+        :param s: network source vertex
+        :param t: network sink vertex
+        :return: Matrix with flow of each edge
+        """
+
         F = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
-        edges = self.getEdgesList()
         flow_for_vertex = self.getFlowByVertex()
-        flow_of_edges = self.getFlowOfEachEdge()
-        aux_flow_of_edges = self.getFlowOfEachEdge()
+        flow_of_edges, capacity_of_edges = self.getFlowAndCapacityOfEachEdge()
         shortest_path = self.bellmanFord(s, t)
 
-        while len(shortest_path) != 0 and flow_for_vertex[s] != 0:
-            f = float("inf")
+        while len(shortest_path) != 0 and flow_for_vertex[t] != 0:
+            max_flow = float("inf")
             for i in range(1, len(shortest_path)):
                 u = shortest_path[i - 1]
                 v = shortest_path[i]
 
-                if aux_flow_of_edges[u][v] < f:
-                    f = aux_flow_of_edges[u][v]
+                if capacity_of_edges[u][v] < max_flow:
+                    max_flow = capacity_of_edges[u][v]
 
             for i in range(1, len(shortest_path)):
                 u = shortest_path[i - 1]
                 v = shortest_path[i]
-                F[u][v] += f
-                aux_flow_of_edges[u][v] -= f
-                aux_flow_of_edges[v][u] += f
-                flow_for_vertex[s] -= f
-                flow_for_vertex[s] -= f
-                flow_for_vertex[t] += f
+                F[u][v] += max_flow
+                capacity_of_edges[u][v] -= max_flow
 
-                if aux_flow_of_edges[u][v] == 0:
+                if capacity_of_edges[u][v] == 0:
                     self.mat_adj[u][v] = 0
-                    edges.remove((u, v, flow_of_edges[u][v]))
+                    self.edges_list.remove((u, v, flow_of_edges[u][v]))
 
                 if self.mat_adj[v][u] == 0:
                     self.mat_adj[v][u] = 1
-                    edges.append((v, u, -flow_of_edges[u][v]))
+                    self.edges_list.append((v, u, -flow_of_edges[u][v]))
                     flow_of_edges[v][u] = -flow_of_edges[u][v]
+
+                capacity_of_edges[v][u] += max_flow
+
+                if F[v][u] != 0:
+                    F[v][u] -= max_flow
+
+            flow_for_vertex[s] -= max_flow
+            flow_for_vertex[t] += max_flow
 
             shortest_path = self.bellmanFord(s, t)
 
         return F
 
+    def formatData(self, final_matrix: list) -> None:
+        """
+        Format the final data to user
+
+        :param final_matrix: Matrix with flow of each edge
+        :return:
+        """
+        teachers_keys = self.teachers_index.keys()
+        subjects_keys = self.subjects_index.keys()
+        edges = []
+        costs = [0, 3, 5, 8, 10]
+        totalCost = 0
+        total = 0
+
+        for i in range(0, len(final_matrix)):
+            for j in range(0, len(final_matrix[i])):
+                if final_matrix[i][j] != 0:
+                    if i in teachers_keys or j in subjects_keys:
+                        edges.append((i, j, final_matrix[i][j]))
+
+        print("\n")
+        print("{:<20} {:<20} {:<40} {:<40} {:<40}".format('Teacher', 'Subject', 'Name', 'Classes', 'Cost'))
+        for teacher, subject, classes in edges:
+            subjectId = self.subjects_index[subject][0]
+            teacherSubjects = self.teachers_index[teacher][2]
+            subjectCost = teacherSubjects.index(subjectId)
+            print("{:<20} {:<20} {:<40} {:<40} {:<40}"
+                  .format(self.teachers_index[teacher][0], subjectId, self.subjects_index[subject][1],
+                          classes, costs[subjectCost]))
+            totalCost += costs[subjectCost] * classes
+            total += classes
+
+        print(f"\nThe total cost was {totalCost}")
+        print(f"Total classes allocated: {total}")
+
+    def menu(self) -> None:
+        """
+        User CLI function
+
+        :return:
+        """
+        option = None
+        print("\nWelcome to the DECSI resource allocation script")
+
+        while option != '-1':
+            option = input("\n(1) Get the toy's resource allocation\n(2) Get the original resource allocation\n"
+                           "(-1) Exit\n")
+
+            if option == '1':
+                self.run("professores_toy.csv", "disciplinas_toy.csv")
+                self.reset()
+
+            elif option == '2':
+                self.run("professores.csv", "disciplinas.csv")
+                self.reset()
+
+            elif option == '-1':
+                break
+
+            else:
+                print("\nInvalid operation. Try again")
+
     def run(self, teachers_file: str, subjects_file: str) -> None:
+        """
+        Script main function
+
+        :param teachers_file: name of the csv teachers file in /dataset
+        :param subjects_file: name of the csv subjects file in /dataset
+        """
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
-        self.successfulShortestPaths(0, self.num_vet - 1)
+        self.formatData(self.successfulShortestPaths(0, self.num_vet - 1))
