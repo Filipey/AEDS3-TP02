@@ -60,9 +60,9 @@ $ python main.py
 ```python
 # Será exibido ao usuário as seguintes opções:
 
-(1) Obter alocação de recursos dos arquivos _toy
-(2) Obter alocação de recursos dos arquivos originais
-(-1) Sair
+(1) "Obter alocação de recursos dos arquivos _toy"
+(2) "Obter alocação de recursos dos arquivos originais"
+(-1) "Sair"
 ```
 
 A execução irá retornar no console a seguinte resposta:
