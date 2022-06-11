@@ -23,7 +23,7 @@ class Graph:
         self.num_of_classes = None
         self.edges_list = []
 
-    def reset(self, num_vet=0, num_edg=0, mat_adj: list = None, list_adj: list = None):
+    def reset(self, num_vet=0, num_edg=0, mat_adj: list = None, list_adj: list = None) -> None:
         """
         Function to reset object for CLI use
 
@@ -325,7 +325,7 @@ class Graph:
 
         return shortest_path
 
-    def getFlowByVertex(self):
+    def getFlowByVertex(self) -> list:
         """
         Get the flow that should pass for each vertex
 
