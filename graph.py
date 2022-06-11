@@ -41,7 +41,7 @@ class Graph:
 
     def removeEdge(self, source, sink) -> None:
         """
-        Delete a edge from graph
+        Delete an edge from graph
 
         :param source: Source vertex
         :param sink: Destiny vertex
@@ -259,6 +259,7 @@ class Graph:
         # subject with capacity equals to subject number of classes
         self.setTeachersToSubjectsEdges()
 
+        # setting all edges into a list
         self.SetEdgesList()
 
     def bellmanFord(self, s: int, v: int) -> list:
@@ -294,6 +295,8 @@ class Graph:
             shortest_path.append(i)
             i = pred[i]
 
+        # if it has no path from 's' to 'v'
+        # the shortest_path will have only the element [v]
         if len(shortest_path) == 1:
             shortest_path.clear()
 
@@ -375,6 +378,22 @@ class Graph:
 
         return F
 
+    def formatData(self, final_matrix: list) -> None:
+        teachers_keys = self.teachers_index.keys()
+        subjects_keys = self.subjects_index.keys()
+        edges = []
+
+        for i in range(0, len(final_matrix)):
+            for j in range(0, len(final_matrix[i])):
+                if final_matrix[i][j] != 0:
+                    if i in teachers_keys or j in subjects_keys:
+                        edges.append((i, j, final_matrix[i][j]))
+
+        print("\n")
+        print("{:<20} {:<40} {:<20}".format('Teacher', 'Subject', 'Classes'))
+        for teacher, subject, classes in edges:
+            print("{:<20} {:<40} {:<20}".format(self.teachers_index[teacher][0], self.subjects_index[subject][1], classes))
+
     def run(self, teachers_file: str, subjects_file: str) -> None:
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
-        self.successfulShortestPaths(0, self.num_vet - 1)
+        self.formatData(self.successfulShortestPaths(0, self.num_vet - 1))
