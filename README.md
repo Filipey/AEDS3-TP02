@@ -58,13 +58,11 @@ $ python main.py
 ````
 
 ```python
-# Será solicitado ao usuário as seguintes entradas:
+# Será exibido ao usuário as seguintes opções:
 
-# Arquivo de professores no formato csv presente na pasta /dataset
-teachers = input("Type the filename in /dataset: ")
-
-# Arquivo de disciplinas no formato csv presente na pasta /dataset
-subjects = input("Type the filename in /dataset: ")
+(1) Obter alocação de recursos dos arquivos _toy
+(2) Obter alocação de recursos dos arquivos originais
+(-1) Sair
 ```
 
 A execução irá retornar no console a seguinte resposta:
