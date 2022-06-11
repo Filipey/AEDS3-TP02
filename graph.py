@@ -87,7 +87,7 @@ class Graph:
         else:
             sys.exit("Invalid Edge")
 
-    def SetEdgesList(self) -> None:
+    def setEdgesList(self) -> None:
         """
         Set list of edges in format: source_vertex, sink_vertex, (flow, capacity)
 
@@ -262,31 +262,31 @@ class Graph:
         (teachers, subjects_offered, subjects) = teachers_data
         (subjects_info, num_of_classes, total_of_subjects) = subjects_data
 
-        # updating num_vet based on file data
+        # Updating num_vet based on file data
         self.num_vet = 2 + len(teachers) + total_of_subjects
 
-        # updating data structures with new data
+        # Updating data structures with new data
         self.mat_adj = [[0 for _ in range(self.num_vet)] for _ in range(self.num_vet)]
         self.list_adj = [[] for _ in range(self.num_vet)]
 
-        # adding edge from source 's' to each teacher
+        # Adding edge from source 's' to each teacher
         # with capacity equals to their subjects_offered
         self.setSourceEdges(teachers, subjects_offered)
 
-        # adding edge from each subject to sink 't'
+        # Adding edge from each subject to sink 't'
         # with capacity equals to number of classes of the subject
         self.setSinkEdges(len(teachers) + 1, subjects_info)
 
-        # setting key/value dictionary of teachers
+        # Setting key/value dictionary of teachers
         # and subjects in format {index: value}
         self.setTeachersAndSubjectsIndexes(len(teachers) + 1, subjects_info, teachers_data)
 
-        # adding edge from each to teacher to respective
+        # Adding edge from each to teacher to respective
         # subject with capacity equals to subject number of classes
         self.setTeachersToSubjectsEdges()
 
-        # setting all edges into a list
-        self.SetEdgesList()
+        # Setting all edges into a list
+        self.setEdgesList()
 
     def bellmanFord(self, s: int, v: int) -> list:
         """
@@ -382,7 +382,7 @@ class Graph:
 
         flow_for_vertex = self.getFlowByVertex()  # List with the flow that should pass of each vertex
 
-        # Matrices with flow and capacity of each edge
+        # Matrices with flow and capacity of each edge respectively
         flow_of_edges, capacity_of_edges = self.getFlowAndCapacityOfEachEdge()
 
         shortest_path = self.bellmanFord(s, t)  # Shortest path from 's' to 't'
@@ -433,32 +433,32 @@ class Graph:
         teachers_keys = self.teachers_index.keys()
         subjects_keys = self.subjects_index.keys()
         edges = []
-        costs = [0, 3, 5, 8, 10]
+        costs = [0, 3, 5, 8, 10]  # Based on preferences table
         total_cost = 0
         total_classes = 0
 
         for i in range(0, len(final_matrix)):
             for j in range(0, len(final_matrix[i])):
-                if final_matrix[i][j] != 0:
+                if final_matrix[i][j] != 0:  # If the edge has flow
                     if i in teachers_keys or j in subjects_keys:
-                        edges.append((i, j, final_matrix[i][j]))
+                        edges.append((i, j, final_matrix[i][j]))  # Append edge in edges
 
         print("\n")
         print("{:<20} {:<20} {:<40} {:<40} {:<40}".format('Teacher', 'Subject', 'Name', 'Classes', 'Cost'))
         for teacher, subject, classes in edges:
 
-            subjectId = self.subjects_index[subject][0]
-            teacherSubjects = self.teachers_index[teacher][2]
-            subjectCost = teacherSubjects.index(subjectId)
+            subject_id = self.subjects_index[subject][0]
+            teacher_subjects = self.teachers_index[teacher][2]
+            subject_cost = teacher_subjects.index(subject_id)
 
             print("{:<20} {:<20} {:<40} {:<40} {:<40}"
                   .format(self.teachers_index[teacher][0],  # Teacher name
-                          subjectId,  # Subject id
+                          subject_id,  # Subject id
                           self.subjects_index[subject][1],  # Subject name
                           classes,  # Classes
-                          costs[subjectCost] * classes))  # Cost of allocation
+                          costs[subject_cost] * classes))  # Cost of allocation
 
-            total_cost += costs[subjectCost] * classes  # Total cost of all allocations
+            total_cost += costs[subject_cost] * classes  # Total cost of all allocations
             total_classes += classes  # Total classes allocated
 
         print(f"\nThe total cost was {total_cost}")
