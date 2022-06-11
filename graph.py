@@ -23,6 +23,33 @@ class Graph:
         self.num_of_classes = None
         self.edges_list = []
 
+    def reset(self, num_vet=0, num_edg=0, mat_adj: list = None, list_adj: list = None):
+        """
+        Function to reset object for CLI use
+
+        :param num_vet: number of vertexes
+        :param num_edg: number of edges
+        :param mat_adj: adjacency matrix
+        :param list_adj: adjacency list
+        """
+        self.num_vet = num_vet
+        self.num_edg = num_edg
+
+        if mat_adj is None:
+            self.mat_adj = [[0 for _ in range(num_vet)] for _ in range(num_vet)]
+        else:
+            self.mat_adj = mat_adj
+
+        if list_adj is None:
+            self.list_adj = [[] for _ in range(num_vet)]
+        else:
+            self.list_adj = list_adj
+
+        self.subjects_index = {}
+        self.teachers_index = {}
+        self.num_of_classes = None
+        self.edges_list = []
+
     def addEdge(self, source, sink, capacity=float("inf"), flow=0) -> None:
         """
         Add an edge on graph in format (source, sink, (flow, capacity))
@@ -153,7 +180,7 @@ class Graph:
         (teachers, num_of_subject_offered, subjects_offered) = teachers_data
 
         for i in range(0, len(teachers)):
-            self.teachers_index[i+1] = (teachers[i], num_of_subject_offered[i], subjects_offered[i])
+            self.teachers_index[i + 1] = (teachers[i], num_of_subject_offered[i], subjects_offered[i])
 
         for j in range(subjects_initial_vertex, self.num_vet - 1):
             for subject in subjects_info:
@@ -208,20 +235,22 @@ class Graph:
 
         :return: Updated graph data
         """
-        teachersIndexes = self.teachers_index
-        subjectsIndexes = self.subjects_index
+        teachers_indexes = self.teachers_index
+        subjects_indexes = self.subjects_index
 
         # flow value based on the preferences table
         flow = [0, 3, 5, 8, 10]
 
-        for key, (_, classes_offered, [*subjects]) in teachersIndexes.items():
+        for key, (_, classes_offered, [*subjects]) in teachers_indexes.items():
             total_classes_offered = 0
-            for subjectKey, (subjectId, _, classes) in subjectsIndexes.items():
+            for subjectKey, (subjectId, _, classes) in subjects_indexes.items():
                 if total_classes_offered == len(subjects):
                     break
                 if classes_offered == 0:
                     break
                 if subjectId in subjects:
+                    if subjectId == 'CSI000':
+                        classes = 1
                     self.addEdge(key, subjectKey, classes, flow[subjects.index(subjectId)])
                     total_classes_offered += 1
 
@@ -299,6 +328,7 @@ class Graph:
         # the shortest_path will have only the element [v]
         if len(shortest_path) == 1:
             shortest_path.clear()
+            return shortest_path
 
         shortest_path.reverse()
 
@@ -341,29 +371,37 @@ class Graph:
 
         return flow_of_edge, capacity_of_edges
 
-    def successfulShortestPaths(self, s: int, t: int):
+    def successfulShortestPaths(self, s: int, t: int) -> list:
+        """
+        Succesful shortest paths algorithm
+
+        :param s: network source vertex
+        :param t: network sink vertex
+        :return: Matrix with flow of each edge
+        """
+
         F = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
         flow_for_vertex = self.getFlowByVertex()
         flow_of_edges, capacity_of_edges = self.getFlowAndCapacityOfEachEdge()
         shortest_path = self.bellmanFord(s, t)
 
-        while len(shortest_path) != 0 :
-            f = float("inf")
+        while len(shortest_path) != 0 and flow_for_vertex[s] != 0:
+            max_flow = float("inf")
             for i in range(1, len(shortest_path)):
                 u = shortest_path[i - 1]
                 v = shortest_path[i]
 
-                if capacity_of_edges[u][v] < f:
-                    f = capacity_of_edges[u][v]
+                if capacity_of_edges[u][v] < max_flow:
+                    max_flow = capacity_of_edges[u][v]
 
             for i in range(1, len(shortest_path)):
                 u = shortest_path[i - 1]
                 v = shortest_path[i]
-                F[u][v] += f
-                capacity_of_edges[u][v] -= f
-                capacity_of_edges[v][u] += f
-                flow_for_vertex[s] -= f
-                flow_for_vertex[t] += f
+                F[u][v] += max_flow
+                capacity_of_edges[u][v] -= max_flow
+                capacity_of_edges[v][u] += max_flow
+                flow_for_vertex[s] -= max_flow
+                flow_for_vertex[t] += max_flow
 
                 if capacity_of_edges[u][v] == 0:
                     self.mat_adj[u][v] = 0
@@ -379,9 +417,18 @@ class Graph:
         return F
 
     def formatData(self, final_matrix: list) -> None:
+        """
+        Format the final data to user
+
+        :param final_matrix: Matrix with flow of each edge
+        :return:
+        """
         teachers_keys = self.teachers_index.keys()
         subjects_keys = self.subjects_index.keys()
         edges = []
+        costs = [0, 3, 5, 8, 10]
+        totalCost = 0
+        total = 0
 
         for i in range(0, len(final_matrix)):
             for j in range(0, len(final_matrix[i])):
@@ -390,10 +437,46 @@ class Graph:
                         edges.append((i, j, final_matrix[i][j]))
 
         print("\n")
-        print("{:<20} {:<40} {:<20}".format('Teacher', 'Subject', 'Classes'))
+        print("{:<20} {:<20} {:<40} {:<40} {:<40}".format('Teacher', 'Subject', 'Name', 'Classes', 'Cost'))
         for teacher, subject, classes in edges:
-            print("{:<20} {:<40} {:<20}"
-                  .format(self.teachers_index[teacher][0], self.subjects_index[subject][1], classes))
+            subjectId = self.subjects_index[subject][0]
+            teacherSubjects = self.teachers_index[teacher][2]
+            subjectCost = teacherSubjects.index(subjectId)
+            print("{:<20} {:<20} {:<40} {:<40} {:<40}"
+                  .format(self.teachers_index[teacher][0], subjectId, self.subjects_index[subject][1],
+                          classes, costs[subjectCost]))
+            totalCost += costs[subjectCost]
+            total += classes
+
+        print(f"\nThe total cost was {totalCost}")
+        print(f"Total classes allocated: {total}")
+
+    def menu(self) -> None:
+        """
+        User CLI function
+
+        :return:
+        """
+        option = None
+        print("\nWelcome to the DECSI resource allocation algorithm")
+
+        while option != -1:
+            option = int(input("\n(1) Get the toy's resource allocation\n(2) Get the original resource allocation\n"
+                               "(-1) Exit\n"))
+
+            if option == 1:
+                self.run("professores_toy.csv", "disciplinas_toy.csv")
+                self.reset()
+
+            elif option == 2:
+                self.run("professores.csv", "disciplinas.csv")
+                self.reset()
+
+            elif option == -1:
+                break
+
+            else:
+                print("Invalid operation")
 
     def run(self, teachers_file: str, subjects_file: str) -> None:
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
