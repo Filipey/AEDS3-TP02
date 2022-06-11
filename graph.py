@@ -246,7 +246,7 @@ class Graph:
                 if classes_offered == 0:
                     break
                 if subjectId in subjects:
-                    if subjectId == 'CSI000':
+                    if subjectId == 'CSI000':  # Set the max CSI000 classes for each teacher to 1
                         classes = 1
                     self.addEdge(key, subjectKey, classes, flow[subjects.index(subjectId)])
                     total_classes_offered += 1
@@ -377,44 +377,50 @@ class Graph:
         :return: Matrix with flow of each edge
         """
 
+        # Final matrix with flow of each edge
         F = [[0 for _ in range(len(self.mat_adj))] for _ in range(len(self.mat_adj))]
-        flow_for_vertex = self.getFlowByVertex()
+
+        flow_for_vertex = self.getFlowByVertex()  # List with the flow that should pass of each vertex
+
+        # Matrices with flow and capacity of each edge
         flow_of_edges, capacity_of_edges = self.getFlowAndCapacityOfEachEdge()
-        shortest_path = self.bellmanFord(s, t)
 
-        while len(shortest_path) != 0 and flow_for_vertex[t] != 0:
+        shortest_path = self.bellmanFord(s, t)  # Shortest path from 's' to 't'
+
+        # If it has a path, and have flow to send from 's' to 't'
+        while len(shortest_path) != 0 and flow_for_vertex[s] != 0:
             max_flow = float("inf")
-            for i in range(1, len(shortest_path)):
-                u = shortest_path[i - 1]
-                v = shortest_path[i]
+            for i in range(1, len(shortest_path)):  # Get the max flow for the shortest path
+                u = shortest_path[i - 1]  # Current source vertex
+                v = shortest_path[i]  # Current sink vertex
 
-                if capacity_of_edges[u][v] < max_flow:
-                    max_flow = capacity_of_edges[u][v]
+                if capacity_of_edges[u][v] < max_flow:  # If the capacity of current edge < max_flow
+                    max_flow = capacity_of_edges[u][v]  # Update max_flow
 
-            for i in range(1, len(shortest_path)):
-                u = shortest_path[i - 1]
-                v = shortest_path[i]
-                F[u][v] += max_flow
-                capacity_of_edges[u][v] -= max_flow
+            for i in range(1, len(shortest_path)):  # For each edge in shortest_path
+                u = shortest_path[i - 1]  # Current source vertex
+                v = shortest_path[i]  # Current sink vertex
+                F[u][v] += max_flow  # Update de max_flow in the current edge
+                capacity_of_edges[u][v] -= max_flow  # Update the capacity of the current edge
 
-                if capacity_of_edges[u][v] == 0:
-                    self.mat_adj[u][v] = 0
-                    self.edges_list.remove((u, v, flow_of_edges[u][v]))
+                if capacity_of_edges[u][v] == 0:  # If the current edge is saturated
+                    self.mat_adj[u][v] = 0  # Removed edge in the graph
+                    self.edges_list.remove((u, v, flow_of_edges[u][v]))  # Removed edge in edges_list
 
-                if self.mat_adj[v][u] == 0:
-                    self.mat_adj[v][u] = 1
-                    self.edges_list.append((v, u, -flow_of_edges[u][v]))
-                    flow_of_edges[v][u] = -flow_of_edges[u][v]
+                if self.mat_adj[v][u] == 0:  # If it has no reverse edge
+                    self.mat_adj[v][u] = 1  # Created reverse edge
+                    self.edges_list.append((v, u, -flow_of_edges[u][v]))  # Append reverse edge in edges_list
+                    flow_of_edges[v][u] = -flow_of_edges[u][v]  # Set the flow of the reverse edge with reverse weight
 
-                capacity_of_edges[v][u] += max_flow
+                capacity_of_edges[v][u] += max_flow  # Updated the capacity of the reverse edge
 
-                if F[v][u] != 0:
-                    F[v][u] -= max_flow
+                if F[v][u] != 0:  # If it has flow in reverse edge
+                    F[v][u] -= max_flow  # Updated the flow
 
-            flow_for_vertex[s] -= max_flow
-            flow_for_vertex[t] += max_flow
+            flow_for_vertex[s] -= max_flow  # Updated the flow of the source vertex
+            flow_for_vertex[t] += max_flow  # Updated the flow of the sink vertex
 
-            shortest_path = self.bellmanFord(s, t)
+            shortest_path = self.bellmanFord(s, t)  # Get the next shortest path
 
         return F
 
@@ -423,14 +429,13 @@ class Graph:
         Format the final data to user
 
         :param final_matrix: Matrix with flow of each edge
-        :return:
         """
         teachers_keys = self.teachers_index.keys()
         subjects_keys = self.subjects_index.keys()
         edges = []
         costs = [0, 3, 5, 8, 10]
-        totalCost = 0
-        total = 0
+        total_cost = 0
+        total_classes = 0
 
         for i in range(0, len(final_matrix)):
             for j in range(0, len(final_matrix[i])):
@@ -441,17 +446,23 @@ class Graph:
         print("\n")
         print("{:<20} {:<20} {:<40} {:<40} {:<40}".format('Teacher', 'Subject', 'Name', 'Classes', 'Cost'))
         for teacher, subject, classes in edges:
+
             subjectId = self.subjects_index[subject][0]
             teacherSubjects = self.teachers_index[teacher][2]
             subjectCost = teacherSubjects.index(subjectId)
-            print("{:<20} {:<20} {:<40} {:<40} {:<40}"
-                  .format(self.teachers_index[teacher][0], subjectId, self.subjects_index[subject][1],
-                          classes, costs[subjectCost]))
-            totalCost += costs[subjectCost] * classes
-            total += classes
 
-        print(f"\nThe total cost was {totalCost}")
-        print(f"Total classes allocated: {total}")
+            print("{:<20} {:<20} {:<40} {:<40} {:<40}"
+                  .format(self.teachers_index[teacher][0],  # Teacher name
+                          subjectId,  # Subject id
+                          self.subjects_index[subject][1],  # Subject name
+                          classes,  # Classes
+                          costs[subjectCost] * classes))  # Cost of allocation
+
+            total_cost += costs[subjectCost] * classes  # Total cost of all allocations
+            total_classes += classes  # Total classes allocated
+
+        print(f"\nThe total cost was {total_cost}")
+        print(f"Total classes allocated: {total_classes}")
 
     def menu(self) -> None:
         """
