@@ -347,7 +347,7 @@ class Graph:
         flow_of_edges, capacity_of_edges = self.getFlowAndCapacityOfEachEdge()
         shortest_path = self.bellmanFord(s, t)
 
-        while len(shortest_path) != 0 and flow_for_vertex[s] != 0:
+        while len(shortest_path) != 0 :
             f = float("inf")
             for i in range(1, len(shortest_path)):
                 u = shortest_path[i - 1]
@@ -392,7 +392,8 @@ class Graph:
         print("\n")
         print("{:<20} {:<40} {:<20}".format('Teacher', 'Subject', 'Classes'))
         for teacher, subject, classes in edges:
-            print("{:<20} {:<40} {:<20}".format(self.teachers_index[teacher][0], self.subjects_index[subject][1], classes))
+            print("{:<20} {:<40} {:<20}"
+                  .format(self.teachers_index[teacher][0], self.subjects_index[subject][1], classes))
 
     def run(self, teachers_file: str, subjects_file: str) -> None:
         self.setInitialData(self.readTeachers(teachers_file), self.readSubjects(subjects_file))
