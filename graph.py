@@ -445,7 +445,7 @@ class Graph:
             print("{:<20} {:<20} {:<40} {:<40} {:<40}"
                   .format(self.teachers_index[teacher][0], subjectId, self.subjects_index[subject][1],
                           classes, costs[subjectCost]))
-            totalCost += costs[subjectCost]
+            totalCost += costs[subjectCost] * classes
             total += classes
 
         print(f"\nThe total cost was {totalCost}")
@@ -460,19 +460,19 @@ class Graph:
         option = None
         print("\nWelcome to the DECSI resource allocation algorithm")
 
-        while option != -1:
-            option = int(input("\n(1) Get the toy's resource allocation\n(2) Get the original resource allocation\n"
-                               "(-1) Exit\n"))
+        while option != '-1':
+            option = input("\n(1) Get the toy's resource allocation\n(2) Get the original resource allocation\n"
+                           "(-1) Exit\n")
 
-            if option == 1:
+            if option == '1':
                 self.run("professores_toy.csv", "disciplinas_toy.csv")
                 self.reset()
 
-            elif option == 2:
+            elif option == '2':
                 self.run("professores.csv", "disciplinas.csv")
                 self.reset()
 
-            elif option == -1:
+            elif option == '-1':
                 break
 
             else:
