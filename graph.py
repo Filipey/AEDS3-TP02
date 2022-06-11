@@ -91,7 +91,6 @@ class Graph:
         """
         Set list of edges in format: source_vertex, sink_vertex, (flow, capacity)
 
-        :return: Updated list of edges
         """
 
         for i in range(0, len(self.mat_adj)):
@@ -165,14 +164,13 @@ class Graph:
         except IOError:
             sys.exit("The file doesnt exists in /dataset")
 
-    def setTeachersAndSubjectsIndexes(self, subjects_initial_vertex: int, subjects_info: list, teachers_data: tuple):
+    def setTeachersAndSubjectsIndexes(self, subjects_initial_vertex: int, subjects_info: list, teachers_data: tuple) -> None:
         """
         Set the key/value of each teacher and subject
 
         :param teachers_data: tuple with data of each teacher
         :param subjects_initial_vertex: initial vertex of subjects
         :param subjects_info: list of each subject info
-        :return:
         """
         (teachers, num_of_subject_offered, subjects_offered) = teachers_data
 
@@ -191,7 +189,6 @@ class Graph:
 
         :param teachers: List of teachers
         :param subjects_offered: List of subjects that each teacher apply
-        :return: Edges from source vertex to tier 1 (source -> teachers)
         """
         source = self.mat_adj[0]
         copy = [0]
@@ -212,7 +209,6 @@ class Graph:
 
         :param initial_vertex: Vertex where starts tier 2 (Subjects)
         :param subjects_info: List of subjects in format [[Id, Name, Num_of_classes]]
-        :return: Edges from each subject to sink vertex (subject -> sink)
         """
         subjects_capacities = [c[2] for c in subjects_info]
         sink = self.num_vet - 1
@@ -226,11 +222,10 @@ class Graph:
                 break
             self.addEdge(source_subject, sink, subject_capacity)
 
-    def setTeachersToSubjectsEdges(self):
+    def setTeachersToSubjectsEdges(self) -> None:
         """
         Set edges from each teacher to their respective subjects
 
-        :return: Updated graph data
         """
         teachers_indexes = self.teachers_index
         subjects_indexes = self.subjects_index
@@ -251,13 +246,12 @@ class Graph:
                     self.addEdge(key, subjectKey, classes, flow[subjects.index(subjectId)])
                     total_classes_offered += 1
 
-    def setInitialData(self, teachers_data: tuple, subjects_data: tuple):
+    def setInitialData(self, teachers_data: tuple, subjects_data: tuple) -> None:
         """
         Set the initial data of the graph
 
         :param teachers_data: Tuple in format (teachers: list, subjects_offered: list, subjects: list)
         :param subjects_data: Tuple in format (subjects_info: list, num_of_classes: list, total_of_subjects: int)
-        :return: Updated graph data
         """
         (teachers, subjects_offered, subjects) = teachers_data
         (subjects_info, num_of_classes, total_of_subjects) = subjects_data
@@ -468,7 +462,6 @@ class Graph:
         """
         User CLI function
 
-        :return:
         """
         option = None
         print("\nWelcome to the DECSI resource allocation script")
