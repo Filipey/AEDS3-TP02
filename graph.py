@@ -22,6 +22,7 @@ class Graph:
         self.teachers_index = {}
         self.num_of_classes = None
         self.edges_list = []
+        self.away_teachers = []
 
     def reset(self, num_vet=0, num_edg=0, mat_adj: list = None, list_adj: list = None) -> None:
         """
@@ -49,6 +50,7 @@ class Graph:
         self.teachers_index = {}
         self.num_of_classes = None
         self.edges_list = []
+        self.away_teachers = []
 
     def addEdge(self, source, sink, capacity=float("inf"), flow=0) -> None:
         """
@@ -233,12 +235,13 @@ class Graph:
         # flow value based on the preferences table
         flow = [0, 3, 5, 8, 10]
 
-        for key, (_, classes_offered, [*subjects]) in teachers_indexes.items():
+        for key, (name, classes_offered, [*subjects]) in teachers_indexes.items():
             total_classes_offered = 0
             for subjectKey, (subjectId, _, classes) in subjects_indexes.items():
                 if total_classes_offered == len(subjects):
                     break
                 if classes_offered == 0:
+                    self.away_teachers.append(name)
                     break
                 if subjectId in subjects:
                     if subjectId == 'CSI000':  # Set the max CSI000 classes for each teacher to 1
@@ -457,6 +460,12 @@ class Graph:
 
         print(f"\nThe total cost was {total_cost}")
         print(f"Total classes allocated: {total_classes}")
+
+        if len(self.away_teachers) != 0:
+            print(f"\nThis teachers dont offer any subject:")
+            print(*self.away_teachers, sep=", ")
+        else:
+            print("\nAll teachers offer at least one subject")
 
     def menu(self) -> None:
         """
