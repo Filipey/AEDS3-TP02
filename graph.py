@@ -77,7 +77,6 @@ class Graph:
         """
         if source < self.num_vet and sink < self.num_vet:
             if self.mat_adj[source][sink] != 0:
-                self.num_edg -= 1
                 self.mat_adj[source][sink] = 0
 
                 for (v, w) in self.list_adj[source]:
@@ -85,7 +84,7 @@ class Graph:
                         self.list_adj[source].remove((v, w))
                         break
 
-                self.num_edg += 1
+                self.num_edg -= 1
         else:
             sys.exit("Invalid Edge")
 
