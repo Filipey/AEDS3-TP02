@@ -244,9 +244,11 @@ class Graph:
                     break
                 if subjectId in subjects:
                     if subjectId == 'CSI000':  # Set the max CSI000 classes for each teacher to 1
-                        classes = 1
-                    self.addEdge(key, subjectKey, classes, flow[subjects.index(subjectId)])
-                    total_classes_offered += 1
+                        self.addEdge(key, subjectKey, 1, flow[subjects.index(subjectId)])
+                        total_classes_offered += 1
+                    else:
+                        self.addEdge(key, subjectKey, 2, flow[subjects.index(subjectId)])
+                        total_classes_offered += 1
 
     def setInitialData(self, teachers_data: tuple, subjects_data: tuple) -> None:
         """
